@@ -92,18 +92,51 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
 
   if (error || !user) return null;
 
-  // Fetch profile data
+  // Fetch profile data (maybeSingle returns null if not found, doesn't throw)
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
-    .single();
+    .maybeSingle();
+
+  // If profile doesn't exist, create it
+  if (!profile) {
+    console.log('Profile not found, creating...');
+
+    // Get avatar from Google OAuth metadata (if available)
+    const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture || null;
+
+    const { error: insertError } = await supabase
+      .from('profiles')
+      .insert({
+        id: user.id,
+        email: user.email,
+        full_name: user.user_metadata?.full_name || null,
+        avatar_url: avatarUrl,
+      });
+
+    if (insertError) {
+      console.error('Failed to create profile:', insertError);
+    }
+  }
+
+  // Update avatar if user has Google photo but profile doesn't
+  if (profile && !profile.avatar_url) {
+    const googleAvatar = user.user_metadata?.avatar_url || user.user_metadata?.picture;
+    if (googleAvatar) {
+      console.log('Updating profile with Google avatar...');
+      await supabase
+        .from('profiles')
+        .update({ avatar_url: googleAvatar })
+        .eq('id', user.id);
+    }
+  }
 
   return {
     id: user.id,
     email: user.email!,
-    full_name: profile?.full_name,
-    avatar_url: profile?.avatar_url,
+    full_name: profile?.full_name || user.user_metadata?.full_name,
+    avatar_url: profile?.avatar_url || user.user_metadata?.avatar_url || user.user_metadata?.picture,
   };
 }
 

@@ -21,23 +21,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check active sessions and sets the user
-    getCurrentUser().then((user) => {
-      setUser(user);
+    // Timeout fallback to prevent infinite loading
+    const timeout = setTimeout(() => {
+      console.warn('Auth loading timeout - forcing completion');
       setLoading(false);
-    });
+    }, 3000);
+
+    // Check active sessions and sets the user
+    getCurrentUser()
+      .then((user) => {
+        clearTimeout(timeout);
+        console.log('Auth loaded:', user ? 'User found' : 'No user');
+        setUser(user);
+        setLoading(false);
+      })
+      .catch((error) => {
+        clearTimeout(timeout);
+        console.error('Auth error:', error);
+        setUser(null);
+        setLoading(false);
+      });
 
     // Listen for auth changes
     const supabase = getSupabase();
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (session?.user) {
-          const currentUser = await getCurrentUser();
-          setUser(currentUser);
-        } else {
+        try {
+          if (session?.user) {
+            const currentUser = await getCurrentUser();
+            setUser(currentUser);
+          } else {
+            setUser(null);
+          }
+        } catch (error) {
+          console.error('Auth state change error:', error);
           setUser(null);
+        } finally {
+          setLoading(false);
         }
-        setLoading(false);
       }
     );
 
