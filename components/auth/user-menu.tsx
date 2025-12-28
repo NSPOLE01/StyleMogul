@@ -34,13 +34,13 @@ export default function UserMenu() {
       <div className="flex items-center gap-3">
         <button
           onClick={openSignIn}
-          className="text-neutral-600 hover:text-neutral-900 font-medium transition-colors"
+          className="text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white font-medium transition-colors"
         >
           Sign In
         </button>
         <button
           onClick={openSignUp}
-          className="bg-primary-500 text-white px-5 py-2 rounded-full font-semibold hover:bg-primary-600 transition-colors"
+          className="bg-primary-500 dark:bg-primary-600 text-white px-5 py-2 rounded-full font-semibold hover:bg-primary-600 dark:hover:bg-primary-700 transition-colors"
         >
           Sign Up
         </button>
@@ -77,11 +77,11 @@ export default function UserMenu() {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-neutral-100 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-neutral-800 rounded-2xl shadow-xl border border-neutral-100 dark:border-neutral-700 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
           {/* User Info */}
-          <div className="px-4 py-3 border-b border-neutral-100">
-            <p className="font-semibold text-neutral-900">{user.full_name || 'User'}</p>
-            <p className="text-sm text-neutral-500 truncate">{user.email}</p>
+          <div className="px-4 py-3 border-b border-neutral-100 dark:border-neutral-700">
+            <p className="font-semibold text-neutral-900 dark:text-white">{user.full_name || 'User'}</p>
+            <p className="text-sm text-neutral-500 dark:text-neutral-400 truncate">{user.email}</p>
           </div>
 
           {/* Menu Items */}
@@ -89,34 +89,34 @@ export default function UserMenu() {
             <Link
               href="/profile"
               onClick={() => setIsOpen(false)}
-              className="block px-4 py-2 text-neutral-700 hover:bg-neutral-50 transition-colors"
+              className="block px-4 py-2 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
             >
               Your Profile
             </Link>
             <Link
               href="/upload"
               onClick={() => setIsOpen(false)}
-              className="block px-4 py-2 text-neutral-700 hover:bg-neutral-50 transition-colors"
+              className="block px-4 py-2 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
             >
               Upload Outfit
             </Link>
             <Link
               href="/moodboard"
               onClick={() => setIsOpen(false)}
-              className="block px-4 py-2 text-neutral-700 hover:bg-neutral-50 transition-colors"
+              className="block px-4 py-2 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
             >
               Moodboard
             </Link>
           </div>
 
           {/* Sign Out */}
-          <div className="border-t border-neutral-100 pt-2">
+          <div className="border-t border-neutral-100 dark:border-neutral-700 pt-2">
             <button
               onClick={() => {
                 signOut();
                 setIsOpen(false);
               }}
-              className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 transition-colors"
+              className="block w-full text-left px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
             >
               Sign Out
             </button>
