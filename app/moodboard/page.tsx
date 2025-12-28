@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import Navigation from '@/components/navigation';
+import ProtectedRoute from '@/components/protected-route';
 import OutfitCard from '@/components/ui/outfit-card';
 import ItemCard from '@/components/ui/item-card';
 
@@ -51,8 +52,9 @@ export default function MoodboardPage() {
   const [activeTab, setActiveTab] = useState<'outfits' | 'items'>('outfits');
 
   return (
-    <main className="min-h-screen bg-neutral-50">
-      <Navigation />
+    <ProtectedRoute>
+      <main className="min-h-screen bg-neutral-50">
+        <Navigation />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
@@ -151,5 +153,6 @@ export default function MoodboardPage() {
         )}
       </div>
     </main>
+    </ProtectedRoute>
   );
 }

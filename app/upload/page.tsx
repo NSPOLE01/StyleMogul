@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Navigation from '@/components/navigation';
+import ProtectedRoute from '@/components/protected-route';
 import UploadDropzone from '@/components/ui/upload-dropzone';
 import StyleTag from '@/components/ui/style-tag';
 import ColorSwatch from '@/components/ui/color-swatch';
@@ -111,8 +112,9 @@ export default function UploadPage() {
   };
 
   return (
-    <main className="min-h-screen bg-neutral-50">
-      <Navigation />
+    <ProtectedRoute>
+      <main className="min-h-screen bg-neutral-50">
+        <Navigation />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-8">
@@ -258,5 +260,6 @@ export default function UploadPage() {
         )}
       </div>
     </main>
+    </ProtectedRoute>
   );
 }
