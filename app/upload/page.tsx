@@ -113,15 +113,15 @@ export default function UploadPage() {
 
   return (
     <ProtectedRoute>
-      <main className="min-h-screen bg-neutral-50">
+      <main className="min-h-screen bg-neutral-50 dark:bg-neutral-900">
         <Navigation />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-neutral-900 mb-2">
+          <h1 className="text-4xl font-bold text-neutral-900 dark:text-white mb-2">
             Upload Your Outfit
           </h1>
-          <p className="text-neutral-600">
+          <p className="text-neutral-600 dark:text-neutral-300">
             Share a photo of an outfit you love and discover matching items
           </p>
         </div>
@@ -137,7 +137,7 @@ export default function UploadPage() {
             ) : (
               <div className="space-y-4">
                 {/* Preview */}
-                <div className="relative aspect-[3/4] rounded-3xl overflow-hidden bg-neutral-100">
+                <div className="relative aspect-[3/4] rounded-3xl overflow-hidden bg-neutral-100 dark:bg-neutral-800">
                   <Image
                     src={previewUrl}
                     alt="Preview"
@@ -154,7 +154,7 @@ export default function UploadPage() {
                     setAnalysis(null);
                     setRecommendations([]);
                   }}
-                  className="w-full bg-neutral-200 text-neutral-900 px-6 py-3 rounded-full font-semibold hover:bg-neutral-300 transition-colors"
+                  className="w-full bg-neutral-200 dark:bg-neutral-700 text-neutral-900 dark:text-white px-6 py-3 rounded-full font-semibold hover:bg-neutral-300 dark:hover:bg-neutral-600 transition-colors"
                 >
                   Upload Different Photo
                 </button>
@@ -162,7 +162,7 @@ export default function UploadPage() {
             )}
 
             {error && (
-              <div className="mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl">
+              <div className="mt-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-2xl">
                 {error}
               </div>
             )}
@@ -171,22 +171,22 @@ export default function UploadPage() {
           {/* Analysis Section */}
           <div>
             {isAnalyzing ? (
-              <div className="bg-white rounded-3xl p-8 shadow-soft text-center">
+              <div className="bg-white dark:bg-neutral-800 rounded-3xl p-8 shadow-soft text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-500 border-t-transparent mx-auto mb-4"></div>
-                <p className="text-neutral-600">Analyzing your outfit...</p>
+                <p className="text-neutral-600 dark:text-neutral-300">Analyzing your outfit...</p>
               </div>
             ) : analysis ? (
-              <div className="bg-white rounded-3xl p-6 shadow-soft space-y-6">
+              <div className="bg-white dark:bg-neutral-800 rounded-3xl p-6 shadow-soft space-y-6">
                 <div>
-                  <h2 className="text-xl font-semibold text-neutral-900 mb-3">
+                  <h2 className="text-xl font-semibold text-neutral-900 dark:text-white mb-3">
                     Style Analysis
                   </h2>
-                  <p className="text-neutral-700 mb-4">{analysis.description}</p>
+                  <p className="text-neutral-700 dark:text-neutral-300 mb-4">{analysis.description}</p>
 
                   {/* Style Tags */}
                   {analysis.styleTags.length > 0 && (
                     <div className="mb-4">
-                      <p className="text-sm font-semibold text-neutral-600 mb-2">
+                      <p className="text-sm font-semibold text-neutral-600 dark:text-neutral-400 mb-2">
                         Style Tags
                       </p>
                       <div className="flex flex-wrap gap-2">
@@ -200,7 +200,7 @@ export default function UploadPage() {
                   {/* Categories */}
                   {analysis.categories.length > 0 && (
                     <div className="mb-4">
-                      <p className="text-sm font-semibold text-neutral-600 mb-2">
+                      <p className="text-sm font-semibold text-neutral-600 dark:text-neutral-400 mb-2">
                         Items Detected
                       </p>
                       <div className="flex flex-wrap gap-2">
@@ -214,7 +214,7 @@ export default function UploadPage() {
                   {/* Colors */}
                   {analysis.colors.length > 0 && (
                     <div>
-                      <p className="text-sm font-semibold text-neutral-600 mb-2">
+                      <p className="text-sm font-semibold text-neutral-600 dark:text-neutral-400 mb-2">
                         Color Palette
                       </p>
                       <div className="flex gap-2">
@@ -227,7 +227,7 @@ export default function UploadPage() {
                 </div>
               </div>
             ) : (
-              <div className="bg-white rounded-3xl p-8 shadow-soft text-center text-neutral-500">
+              <div className="bg-white dark:bg-neutral-800 rounded-3xl p-8 shadow-soft text-center text-neutral-500 dark:text-neutral-400">
                 Upload a photo to see AI analysis
               </div>
             )}
@@ -237,7 +237,7 @@ export default function UploadPage() {
         {/* Recommendations */}
         {recommendations.length > 0 && (
           <div className="mt-12">
-            <h2 className="text-3xl font-bold text-neutral-900 mb-6">
+            <h2 className="text-3xl font-bold text-neutral-900 dark:text-white mb-6">
               Recommended Items
             </h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

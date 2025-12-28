@@ -21,9 +21,9 @@ export default function OutfitCard({
   onClick,
 }: OutfitCardProps) {
   const cardContent = (
-    <div className="bg-white rounded-3xl overflow-hidden shadow-soft hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+    <div className="bg-white dark:bg-neutral-800 rounded-3xl overflow-hidden shadow-soft hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
       {/* Image */}
-      <div className="relative aspect-[3/4] bg-neutral-100">
+      <div className="relative aspect-[3/4] bg-neutral-100 dark:bg-neutral-700">
         <Image
           src={imageUrl}
           alt="Outfit"
@@ -46,7 +46,7 @@ export default function OutfitCard({
 
         {/* Description */}
         {description && (
-          <p className="text-neutral-700 text-sm mb-3 line-clamp-2">
+          <p className="text-neutral-700 dark:text-neutral-300 text-sm mb-3 line-clamp-2">
             {description}
           </p>
         )}

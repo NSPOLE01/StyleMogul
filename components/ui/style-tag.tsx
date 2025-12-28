@@ -11,8 +11,8 @@ export default function StyleTag({ label, size = 'md', variant = 'default' }: St
   };
 
   const variantClasses = {
-    default: 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200',
-    primary: 'bg-primary-100 text-primary-700 hover:bg-primary-200',
+    default: 'bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600',
+    primary: 'bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-900/60',
   };
 
   return (

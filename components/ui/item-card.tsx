@@ -27,9 +27,9 @@ export default function ItemCard({
   onSave,
 }: ItemCardProps) {
   return (
-    <div className="bg-white rounded-3xl overflow-hidden shadow-soft hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+    <div className="bg-white dark:bg-neutral-800 rounded-3xl overflow-hidden shadow-soft hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
       {/* Image */}
-      <div className="relative aspect-[3/4] bg-neutral-100">
+      <div className="relative aspect-[3/4] bg-neutral-100 dark:bg-neutral-700">
         <Image
           src={imageUrl}
           alt={name}
@@ -45,11 +45,11 @@ export default function ItemCard({
               e.stopPropagation();
               onSave(id);
             }}
-            className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-full p-2.5 hover:bg-white transition-all hover:scale-110 shadow-soft"
+            className="absolute top-3 right-3 bg-white/90 dark:bg-neutral-800/90 backdrop-blur-sm rounded-full p-2.5 hover:bg-white dark:hover:bg-neutral-800 transition-all hover:scale-110 shadow-soft"
             aria-label="Save item"
           >
             <svg
-              className="w-5 h-5 text-neutral-700"
+              className="w-5 h-5 text-neutral-700 dark:text-neutral-300"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -76,27 +76,27 @@ export default function ItemCard({
       <div className="p-4">
         {/* Brand & Category */}
         <div className="flex items-center justify-between mb-2">
-          <p className="text-xs font-semibold text-primary-500 uppercase tracking-wide">
+          <p className="text-xs font-semibold text-primary-500 dark:text-primary-400 uppercase tracking-wide">
             {brand}
           </p>
-          <p className="text-xs text-neutral-500 uppercase">
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 uppercase">
             {category}
           </p>
         </div>
 
         {/* Name */}
-        <h3 className="font-semibold text-neutral-900 mb-1">
+        <h3 className="font-semibold text-neutral-900 dark:text-white mb-1">
           {name}
         </h3>
 
         {/* Price Range */}
-        <p className="text-neutral-600 text-sm mb-3">
+        <p className="text-neutral-600 dark:text-neutral-300 text-sm mb-3">
           {priceRange}
         </p>
 
         {/* Description */}
         {description && (
-          <p className="text-neutral-600 text-sm mb-3 line-clamp-2">
+          <p className="text-neutral-600 dark:text-neutral-300 text-sm mb-3 line-clamp-2">
             {description}
           </p>
         )}

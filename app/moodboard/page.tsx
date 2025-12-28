@@ -53,28 +53,28 @@ export default function MoodboardPage() {
 
   return (
     <ProtectedRoute>
-      <main className="min-h-screen bg-neutral-50">
+      <main className="min-h-screen bg-neutral-50 dark:bg-neutral-900">
         <Navigation />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-neutral-900 mb-2">
+          <h1 className="text-4xl font-bold text-neutral-900 dark:text-white mb-2">
             Your Moodboard
           </h1>
-          <p className="text-neutral-600">
+          <p className="text-neutral-600 dark:text-neutral-300">
             All your saved outfits and favorite items in one place
           </p>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-4 mb-8 border-b border-neutral-200">
+        <div className="flex gap-4 mb-8 border-b border-neutral-200 dark:border-neutral-700">
           <button
             onClick={() => setActiveTab('outfits')}
             className={`pb-4 px-2 font-semibold transition-colors border-b-2 ${
               activeTab === 'outfits'
                 ? 'border-primary-500 text-primary-500'
-                : 'border-transparent text-neutral-600 hover:text-neutral-900'
+                : 'border-transparent text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
             }`}
           >
             My Outfits ({mockOutfits.length})
@@ -84,7 +84,7 @@ export default function MoodboardPage() {
             className={`pb-4 px-2 font-semibold transition-colors border-b-2 ${
               activeTab === 'items'
                 ? 'border-primary-500 text-primary-500'
-                : 'border-transparent text-neutral-600 hover:text-neutral-900'
+                : 'border-transparent text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
             }`}
           >
             Saved Items ({mockSavedItems.length})
@@ -102,15 +102,15 @@ export default function MoodboardPage() {
           ) : (
             <div className="text-center py-20">
               <div className="text-6xl mb-4">📸</div>
-              <h3 className="text-xl font-semibold text-neutral-900 mb-2">
+              <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
                 No outfits yet
               </h3>
-              <p className="text-neutral-600 mb-6">
+              <p className="text-neutral-600 dark:text-neutral-300 mb-6">
                 Upload your first outfit to get started
               </p>
               <Link
                 href="/upload"
-                className="inline-block bg-primary-500 text-white px-8 py-3 rounded-full font-semibold hover:bg-primary-600 transition-colors"
+                className="inline-block bg-primary-500 dark:bg-primary-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-primary-600 dark:hover:bg-primary-700 transition-colors"
               >
                 Upload Outfit
               </Link>
@@ -136,15 +136,15 @@ export default function MoodboardPage() {
           ) : (
             <div className="text-center py-20">
               <div className="text-6xl mb-4">✨</div>
-              <h3 className="text-xl font-semibold text-neutral-900 mb-2">
+              <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
                 No saved items yet
               </h3>
-              <p className="text-neutral-600 mb-6">
+              <p className="text-neutral-600 dark:text-neutral-300 mb-6">
                 Upload an outfit to discover items you'll love
               </p>
               <Link
                 href="/upload"
-                className="inline-block bg-primary-500 text-white px-8 py-3 rounded-full font-semibold hover:bg-primary-600 transition-colors"
+                className="inline-block bg-primary-500 dark:bg-primary-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-primary-600 dark:hover:bg-primary-700 transition-colors"
               >
                 Start Discovering
               </Link>
