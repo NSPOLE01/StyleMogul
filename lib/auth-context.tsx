@@ -8,12 +8,14 @@ interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   signOut: async () => {},
+  refreshUser: async () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -21,13 +23,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check active sessions
+    // Load from localStorage (always up-to-date since we update it when profile changes)
     getCurrentUser()
       .then((user) => {
         setUser(user);
         setLoading(false);
 
-        // Sync profile to database in the background (don't await)
+        // Sync profile to database in the background
         if (user) {
           syncUserProfile(user.id, user.email, {
             full_name: user.full_name,
@@ -45,7 +47,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const supabase = getSupabase();
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (session?.user) {
+        // Only update on sign in/sign out events, not on token refresh
+        if (event === 'SIGNED_IN' && session?.user) {
           const currentUser = await getCurrentUser();
           setUser(currentUser);
 
@@ -57,9 +60,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               session.user.user_metadata
             );
           }
-        } else {
+        } else if (event === 'SIGNED_OUT') {
           setUser(null);
         }
+        // Ignore TOKEN_REFRESHED events to prevent overwriting manual refreshes
       }
     );
 
@@ -74,8 +78,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   };
 
+  const handleRefreshUser = async () => {
+    if (!user) return;
+
+    try {
+      const supabase = getSupabase();
+
+      // Fetch fresh profile data from database
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (profile) {
+        setUser({
+          id: user.id,
+          email: user.email,
+          full_name: profile.full_name,
+          avatar_url: profile.avatar_url,
+        });
+      }
+    } catch (error) {
+      console.error('Error refreshing user:', error);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, signOut: handleSignOut }}>
+    <AuthContext.Provider value={{ user, loading, signOut: handleSignOut, refreshUser: handleRefreshUser }}>
       {children}
     </AuthContext.Provider>
   );

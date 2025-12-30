@@ -83,7 +83,46 @@ export async function signOut() {
 }
 
 /**
- * Get current user - read directly from localStorage to bypass hanging getSession()
+ * Update user metadata in localStorage session
+ */
+export function updateLocalStorageUser(updates: { full_name?: string; avatar_url?: string }) {
+  if (typeof window === 'undefined') return;
+
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+    const storageKey = `sb-${new URL(supabaseUrl).hostname.split('.')[0]}-auth-token`;
+
+    const sessionData = localStorage.getItem(storageKey);
+    if (!sessionData) return;
+
+    const session = JSON.parse(sessionData);
+    const user = session?.currentSession?.user || session?.user;
+
+    if (!user) return;
+
+    // Update user_metadata in the session
+    if (!user.user_metadata) {
+      user.user_metadata = {};
+    }
+
+    if (updates.full_name !== undefined) {
+      user.user_metadata.full_name = updates.full_name;
+    }
+
+    if (updates.avatar_url !== undefined) {
+      user.user_metadata.avatar_url = updates.avatar_url;
+      user.user_metadata.picture = updates.avatar_url; // Also update picture field
+    }
+
+    // Write back to localStorage
+    localStorage.setItem(storageKey, JSON.stringify(session));
+  } catch (error) {
+    console.error('Error updating localStorage user:', error);
+  }
+}
+
+/**
+ * Get current user - read directly from localStorage (fast)
  */
 export async function getCurrentUser(): Promise<AuthUser | null> {
   // Only run on client side
@@ -92,7 +131,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
   }
 
   try {
-    // Read session directly from localStorage
+    // Read session directly from localStorage (fast)
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
     const storageKey = `sb-${new URL(supabaseUrl).hostname.split('.')[0]}-auth-token`;
 
@@ -109,7 +148,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
       return null;
     }
 
-    // Return user data from session
+    // Return user data from session (fast, no DB query)
     return {
       id: user.id,
       email: user.email!,

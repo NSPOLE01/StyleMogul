@@ -68,7 +68,8 @@ export default function UserMenu() {
           <img
             src={user.avatar_url}
             alt={user.full_name || user.email}
-            className="w-full h-full rounded-full object-cover"
+            className="w-full h-full rounded-full object-cover transition-opacity duration-300"
+            key={user.avatar_url}
           />
         ) : (
           <span>{initials}</span>

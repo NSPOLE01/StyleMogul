@@ -1,16 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Navigation from '@/components/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { getSupabase } from '@/lib/supabase';
+import { updateLocalStorageUser } from '@/lib/auth';
 
 export default function ProfilePage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, refreshUser } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const [fullName, setFullName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
@@ -23,6 +26,87 @@ export default function ProfilePage() {
       setAvatarUrl(user.avatar_url || '');
     }
   }, [user, authLoading, router]);
+
+  const handleAvatarUpload = async (file: File) => {
+    if (!user) return;
+
+    setUploading(true);
+    setMessage(null);
+
+    try {
+      const supabase = getSupabase();
+
+      // Create unique file name
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+
+      // Upload to Supabase Storage
+      const { error: uploadError, data } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      // Update profile with new avatar URL
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          avatar_url: publicUrl,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      setAvatarUrl(publicUrl);
+
+      // Update localStorage session so next page load has correct avatar
+      updateLocalStorageUser({ avatar_url: publicUrl });
+
+      setMessage({ type: 'success', text: 'Profile photo uploaded successfully!' });
+
+      // Refresh user data to update avatar in navbar immediately
+      await refreshUser();
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.message || 'Failed to upload photo' });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+      handleAvatarUpload(file);
+    }
+  }, [user]);
+
+  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleAvatarUpload(file);
+    }
+  }, [user]);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,6 +128,12 @@ export default function ProfilePage() {
         .eq('id', user.id);
 
       if (error) throw error;
+
+      // Update localStorage session with new profile data
+      updateLocalStorageUser({
+        full_name: fullName,
+        avatar_url: avatarUrl
+      });
 
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
     } catch (error: any) {
@@ -131,31 +221,60 @@ export default function ProfilePage() {
               />
             </div>
 
-            {/* Avatar URL */}
+            {/* Profile Photo Upload */}
             <div>
               <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-2">
-                Avatar URL
+                Profile Photo
               </label>
-              <input
-                type="url"
-                value={avatarUrl}
-                onChange={(e) => setAvatarUrl(e.target.value)}
-                className="w-full px-4 py-3 rounded-2xl border-2 border-neutral-200 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white focus:border-primary-500 dark:focus:border-primary-400 focus:outline-none transition-colors placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
-                placeholder="https://example.com/avatar.jpg"
-              />
-              {avatarUrl && (
-                <div className="mt-3">
-                  <p className="text-xs text-neutral-600 dark:text-neutral-400 mb-2">Preview:</p>
-                  <img
-                    src={avatarUrl}
-                    alt="Avatar preview"
-                    className="w-20 h-20 rounded-full object-cover border-2 border-neutral-200 dark:border-neutral-600"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = '';
-                    }}
-                  />
+
+              {/* Drag and Drop Zone */}
+              <div
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                className={`
+                  relative border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer
+                  transition-all duration-200
+                  ${isDragging
+                    ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                    : 'border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 hover:border-primary-400 dark:hover:border-primary-500 hover:bg-neutral-50 dark:hover:bg-neutral-600'
+                  }
+                  ${uploading ? 'opacity-50 pointer-events-none' : ''}
+                `}
+              >
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileInput}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  disabled={uploading}
+                />
+
+                <div className="flex flex-col items-center gap-3">
+                  {avatarUrl ? (
+                    <img
+                      src={avatarUrl}
+                      alt="Current avatar"
+                      className="w-20 h-20 rounded-full object-cover border-2 border-neutral-200 dark:border-neutral-600"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 rounded-full bg-neutral-100 dark:bg-neutral-600 flex items-center justify-center">
+                      <svg className="w-10 h-10 text-neutral-400 dark:text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                  )}
+
+                  <div>
+                    <p className="text-sm font-semibold text-neutral-900 dark:text-white mb-1">
+                      {uploading ? 'Uploading...' : 'Drop your photo here'}
+                    </p>
+                    <p className="text-xs text-neutral-600 dark:text-neutral-400">
+                      or click to browse • PNG, JPG • Max 5MB
+                    </p>
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
 
             {/* Save Button */}
