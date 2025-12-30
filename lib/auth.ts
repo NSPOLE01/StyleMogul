@@ -83,61 +83,80 @@ export async function signOut() {
 }
 
 /**
- * Get current user
+ * Get current user - read directly from localStorage to bypass hanging getSession()
  */
 export async function getCurrentUser(): Promise<AuthUser | null> {
-  const supabase = getSupabase();
+  // Only run on client side
+  if (typeof window === 'undefined') {
+    return null;
+  }
 
-  const { data: { user }, error } = await supabase.auth.getUser();
+  try {
+    // Read session directly from localStorage
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+    const storageKey = `sb-${new URL(supabaseUrl).hostname.split('.')[0]}-auth-token`;
 
-  if (error || !user) return null;
+    const sessionData = localStorage.getItem(storageKey);
 
-  // Fetch profile data (maybeSingle returns null if not found, doesn't throw)
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .maybeSingle();
+    if (!sessionData) {
+      return null;
+    }
 
-  // If profile doesn't exist, create it
-  if (!profile) {
-    console.log('Profile not found, creating...');
+    const session = JSON.parse(sessionData);
+    const user = session?.currentSession?.user || session?.user;
 
-    // Get avatar from Google OAuth metadata (if available)
-    const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture || null;
+    if (!user) {
+      return null;
+    }
 
-    const { error: insertError } = await supabase
+    // Return user data from session
+    return {
+      id: user.id,
+      email: user.email!,
+      full_name: user.user_metadata?.full_name || null,
+      avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
+    };
+  } catch (error) {
+    console.error('Auth error:', error);
+    return null;
+  }
+}
+
+/**
+ * Sync user profile to database - called separately after initial load
+ */
+export async function syncUserProfile(userId: string, email: string, metadata: any) {
+  try {
+    const supabase = getSupabase();
+
+    // Check if profile exists
+    const { data: profile } = await supabase
       .from('profiles')
-      .insert({
-        id: user.id,
-        email: user.email,
-        full_name: user.user_metadata?.full_name || null,
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle();
+
+    const avatarUrl = metadata?.avatar_url || metadata?.picture || null;
+    const fullName = metadata?.full_name || null;
+
+    if (!profile) {
+      // Create profile
+      await supabase.from('profiles').insert({
+        id: userId,
+        email: email,
+        full_name: fullName,
         avatar_url: avatarUrl,
       });
-
-    if (insertError) {
-      console.error('Failed to create profile:', insertError);
-    }
-  }
-
-  // Update avatar if user has Google photo but profile doesn't
-  if (profile && !profile.avatar_url) {
-    const googleAvatar = user.user_metadata?.avatar_url || user.user_metadata?.picture;
-    if (googleAvatar) {
-      console.log('Updating profile with Google avatar...');
+    } else if (!profile.avatar_url && avatarUrl) {
+      // Update avatar if missing
       await supabase
         .from('profiles')
-        .update({ avatar_url: googleAvatar })
-        .eq('id', user.id);
+        .update({ avatar_url: avatarUrl })
+        .eq('id', userId);
     }
+  } catch (error) {
+    console.error('Profile sync error:', error);
   }
-
-  return {
-    id: user.id,
-    email: user.email!,
-    full_name: profile?.full_name || user.user_metadata?.full_name,
-    avatar_url: profile?.avatar_url || user.user_metadata?.avatar_url || user.user_metadata?.picture,
-  };
 }
 
 /**

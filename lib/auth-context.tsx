@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import { getSupabase } from './supabase';
-import { AuthUser, getCurrentUser } from './auth';
+import { AuthUser, getCurrentUser, syncUserProfile } from './auth';
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -21,23 +21,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Timeout fallback to prevent infinite loading
-    const timeout = setTimeout(() => {
-      console.warn('Auth loading timeout - forcing completion');
-      setLoading(false);
-    }, 3000);
-
-    // Check active sessions and sets the user
+    // Check active sessions
     getCurrentUser()
       .then((user) => {
-        clearTimeout(timeout);
-        console.log('Auth loaded:', user ? 'User found' : 'No user');
         setUser(user);
         setLoading(false);
+
+        // Sync profile to database in the background (don't await)
+        if (user) {
+          syncUserProfile(user.id, user.email, {
+            full_name: user.full_name,
+            avatar_url: user.avatar_url
+          });
+        }
       })
       .catch((error) => {
-        clearTimeout(timeout);
-        console.error('Auth error:', error);
+        console.error('Auth initialization error:', error);
         setUser(null);
         setLoading(false);
       });
@@ -46,18 +45,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const supabase = getSupabase();
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        try {
-          if (session?.user) {
-            const currentUser = await getCurrentUser();
-            setUser(currentUser);
-          } else {
-            setUser(null);
+        if (session?.user) {
+          const currentUser = await getCurrentUser();
+          setUser(currentUser);
+
+          // Sync profile in background
+          if (currentUser) {
+            syncUserProfile(
+              currentUser.id,
+              currentUser.email,
+              session.user.user_metadata
+            );
           }
-        } catch (error) {
-          console.error('Auth state change error:', error);
+        } else {
           setUser(null);
-        } finally {
-          setLoading(false);
         }
       }
     );
