@@ -1,29 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navigation from '@/components/navigation';
 import ProtectedRoute from '@/components/protected-route';
 import OutfitCard from '@/components/ui/outfit-card';
 import ItemCard from '@/components/ui/item-card';
-
-// Mock data - replace with actual Supabase queries
-const mockOutfits = [
-  {
-    id: '1',
-    imageUrl: 'https://placehold.co/400x600/f5f5f4/a8a29e?text=Outfit+1',
-    styleTags: ['minimalist', 'casual'],
-    colors: ['white', 'black', 'gray'],
-    description: 'Clean and simple everyday look',
-  },
-  {
-    id: '2',
-    imageUrl: 'https://placehold.co/400x600/fce8e6/e35e52?text=Outfit+2',
-    styleTags: ['vintage', 'bohemian'],
-    colors: ['pink', 'floral', 'green'],
-    description: 'Vintage floral dress with bohemian vibes',
-  },
-];
+import { getSupabase } from '@/lib/supabase';
+import { useAuth } from '@/lib/auth-context';
+import type { Outfit } from '@/lib/supabase';
 
 const mockSavedItems = [
   {
@@ -49,7 +34,42 @@ const mockSavedItems = [
 ];
 
 export default function MoodboardPage() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'outfits' | 'items'>('outfits');
+  const [outfits, setOutfits] = useState<Outfit[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      fetchOutfits();
+    }
+  }, [user]);
+
+  const fetchOutfits = async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const supabase = getSupabase();
+      const { data, error: fetchError } = await supabase
+        .from('outfits')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (fetchError) throw fetchError;
+
+      setOutfits(data || []);
+    } catch (err) {
+      console.error('Error fetching outfits:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load outfits');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <ProtectedRoute>
@@ -77,7 +97,7 @@ export default function MoodboardPage() {
                 : 'border-transparent text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
             }`}
           >
-            My Outfits ({mockOutfits.length})
+            My Outfits ({loading ? '...' : outfits.length})
           </button>
           <button
             onClick={() => setActiveTab('items')}
@@ -93,10 +113,36 @@ export default function MoodboardPage() {
 
         {/* Content */}
         {activeTab === 'outfits' ? (
-          mockOutfits.length > 0 ? (
+          loading ? (
+            <div className="text-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-500 border-t-transparent mx-auto mb-4"></div>
+              <p className="text-neutral-600 dark:text-neutral-300">Loading your outfits...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-20">
+              <div className="text-6xl mb-4">⚠️</div>
+              <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
+                Error loading outfits
+              </h3>
+              <p className="text-neutral-600 dark:text-neutral-300 mb-6">{error}</p>
+              <button
+                onClick={fetchOutfits}
+                className="inline-block bg-primary-500 dark:bg-primary-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-primary-600 dark:hover:bg-primary-700 transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
+          ) : outfits.length > 0 ? (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {mockOutfits.map((outfit) => (
-                <OutfitCard key={outfit.id} {...outfit} />
+              {outfits.map((outfit) => (
+                <OutfitCard
+                  key={outfit.id}
+                  id={outfit.id}
+                  imageUrl={outfit.image_url}
+                  styleTags={outfit.style_tags}
+                  colors={outfit.colors}
+                  description={outfit.description}
+                />
               ))}
             </div>
           ) : (
