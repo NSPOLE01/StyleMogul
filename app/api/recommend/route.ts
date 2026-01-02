@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateEmbedding } from '@/lib/openai';
-import { getSupabase } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     // Generate embedding
     const embedding = await generateEmbedding(embeddingText);
 
-    const supabase = getSupabase();
+    const supabase = getSupabaseAdmin();
 
     // Query similar items using pgvector
     // Note: This uses a simplified approach. In production, you'd use the

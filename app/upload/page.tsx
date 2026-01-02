@@ -9,6 +9,7 @@ import UploadDropzone from '@/components/ui/upload-dropzone';
 import StyleTag from '@/components/ui/style-tag';
 import ColorSwatch from '@/components/ui/color-swatch';
 import ItemCard from '@/components/ui/item-card';
+import { getSupabase } from '@/lib/supabase';
 
 interface AnalysisResult {
   styleTags: string[];
@@ -54,13 +55,26 @@ export default function UploadPage() {
     setError(null);
 
     try {
+      // Get auth token
+      const supabase = getSupabase();
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
       // Convert file to base64
       const base64 = await fileToBase64(file);
 
       // Call analysis API
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch('/api/analyze', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ image: base64 }),
       });
 

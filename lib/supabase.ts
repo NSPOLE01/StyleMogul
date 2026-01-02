@@ -46,8 +46,10 @@ export type Outfit = {
   style_tags: string[];
   colors: string[];
   description: string;
+  categories: string[];
   embedding: number[];
   created_at: string;
+  updated_at: string;
 };
 
 export type Item = {
