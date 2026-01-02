@@ -6,6 +6,7 @@ import Navigation from '@/components/navigation';
 import ProtectedRoute from '@/components/protected-route';
 import OutfitCard from '@/components/ui/outfit-card';
 import ItemCard from '@/components/ui/item-card';
+import OutfitDetailModal from '@/components/ui/outfit-detail-modal';
 import { getSupabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
 import type { Outfit } from '@/lib/supabase';
@@ -39,6 +40,8 @@ export default function MoodboardPage() {
   const [outfits, setOutfits] = useState<Outfit[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedOutfit, setSelectedOutfit] = useState<Outfit | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -69,6 +72,17 @@ export default function MoodboardPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleOutfitClick = (outfit: Outfit) => {
+    setSelectedOutfit(outfit);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    // Wait for modal animation before clearing selected outfit
+    setTimeout(() => setSelectedOutfit(null), 200);
   };
 
   return (
@@ -142,6 +156,7 @@ export default function MoodboardPage() {
                   styleTags={outfit.style_tags}
                   colors={outfit.colors}
                   description={outfit.description}
+                  onClick={() => handleOutfitClick(outfit)}
                 />
               ))}
             </div>
@@ -198,6 +213,13 @@ export default function MoodboardPage() {
           )
         )}
       </div>
+
+      {/* Outfit Detail Modal */}
+      <OutfitDetailModal
+        outfit={selectedOutfit}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </main>
     </ProtectedRoute>
   );
