@@ -103,17 +103,66 @@ export default function MoodboardPage() {
 
       const supabase = getSupabase();
 
-      // Use the most recent outfit's embedding for recommendations
-      const mostRecentOutfit = outfits[0];
+      // Helper function to ensure embedding is an array
+      const parseEmbedding = (embedding: any): number[] | null => {
+        if (!embedding) return null;
 
-      if (!mostRecentOutfit.embedding) {
-        console.warn('Most recent outfit has no embedding');
+        // If it's already an array, return it
+        if (Array.isArray(embedding)) {
+          return embedding;
+        }
+
+        // If it's a string, try to parse it
+        if (typeof embedding === 'string') {
+          try {
+            // Remove brackets and split by comma
+            const cleaned = embedding.replace(/[\[\]]/g, '');
+            return cleaned.split(',').map(v => parseFloat(v.trim()));
+          } catch (e) {
+            console.error('Failed to parse embedding string:', e);
+            return null;
+          }
+        }
+
+        return null;
+      };
+
+      // Filter outfits that have embeddings and parse them
+      const outfitsWithEmbeddings = outfits
+        .map(outfit => ({
+          ...outfit,
+          parsedEmbedding: parseEmbedding(outfit.embedding)
+        }))
+        .filter(outfit => outfit.parsedEmbedding && outfit.parsedEmbedding.length > 0);
+
+      if (outfitsWithEmbeddings.length === 0) {
+        console.warn('No outfits have valid embeddings');
+        setLoadingRecommended(false);
         return;
       }
 
-      // Call the find_similar_items RPC function
+      // Average all outfit embeddings to create a comprehensive style profile
+      const embeddingDimension = outfitsWithEmbeddings[0].parsedEmbedding!.length;
+      const averageEmbedding = new Array(embeddingDimension).fill(0);
+
+      // Sum all embeddings
+      outfitsWithEmbeddings.forEach(outfit => {
+        outfit.parsedEmbedding!.forEach((value, index) => {
+          averageEmbedding[index] += value;
+        });
+      });
+
+      // Divide by number of outfits to get average
+      const numOutfits = outfitsWithEmbeddings.length;
+      for (let i = 0; i < embeddingDimension; i++) {
+        averageEmbedding[i] /= numOutfits;
+      }
+
+      console.log(`Using average embedding from ${numOutfits} outfit(s) for recommendations`);
+
+      // Call the find_similar_items RPC function with the average embedding
       const { data, error: rpcError } = await supabase.rpc('find_similar_items', {
-        query_embedding: mostRecentOutfit.embedding,
+        query_embedding: averageEmbedding,
         match_threshold: 0.5,
         match_count: 12,
       });
@@ -294,7 +343,7 @@ export default function MoodboardPage() {
               <>
                 <div className="mb-6">
                   <p className="text-neutral-600 dark:text-neutral-300 text-sm">
-                    Based on your most recent outfit, we found {recommendedItems.length} items you might like
+                    Based on your {outfits.length} outfit{outfits.length === 1 ? '' : 's'}, we found {recommendedItems.length} item{recommendedItems.length === 1 ? '' : 's'} you might like
                   </p>
                 </div>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -338,6 +387,12 @@ export default function MoodboardPage() {
                 <p className="text-neutral-600 dark:text-neutral-300 mb-6">
                   We couldn't find any matching items right now. Try uploading more outfits!
                 </p>
+                <button
+                  onClick={fetchRecommendedItems}
+                  className="inline-block bg-primary-500 dark:bg-primary-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-primary-600 dark:hover:bg-primary-700 transition-colors"
+                >
+                  Refresh Recommendations
+                </button>
               </div>
             )
           )}
