@@ -51,14 +51,24 @@ export default function ColorSwatch({ color, size = 'md' }: ColorSwatchProps) {
   const colorValue = colorMap[color.toLowerCase()] || color;
 
   return (
-    <div
-      className={`
-        rounded-full border-2 border-neutral-200 hover:scale-110 transition-transform
-        ${sizeClasses[size]}
-      `}
-      style={{ backgroundColor: colorValue }}
-      title={color}
-      aria-label={`Color: ${color}`}
-    />
+    <div className="relative group inline-block">
+      <div
+        className={`
+          rounded-full border-2 border-neutral-200 dark:border-neutral-600 hover:scale-110 transition-transform cursor-pointer
+          ${sizeClasses[size]}
+        `}
+        style={{ backgroundColor: colorValue }}
+        aria-label={`Color: ${color}`}
+      />
+
+      {/* Tooltip */}
+      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-neutral-900 dark:bg-neutral-700 text-white text-xs font-medium rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg">
+        {color}
+        {/* Arrow */}
+        <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px">
+          <div className="border-4 border-transparent border-t-neutral-900 dark:border-t-neutral-700"></div>
+        </div>
+      </div>
+    </div>
   );
 }
