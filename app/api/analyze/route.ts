@@ -14,17 +14,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log('Analyzing image...');
+
     // Analyze the outfit using OpenAI Vision
     const analysis = await analyzeOutfit(image);
+
+    console.log('Analysis complete:', analysis);
 
     return NextResponse.json({
       success: true,
       analysis,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Analysis error:', error);
+    console.error('Error message:', error?.message);
+    console.error('Error details:', error?.response?.data || error?.cause);
+
     return NextResponse.json(
-      { error: 'Failed to analyze outfit' },
+      {
+        error: 'Failed to analyze outfit',
+        details: error?.message || 'Unknown error'
+      },
       { status: 500 }
     );
   }
