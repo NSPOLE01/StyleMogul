@@ -34,11 +34,25 @@ const mockSavedItems = [
   },
 ];
 
+interface RecommendedItem {
+  id: string;
+  brand: string;
+  name: string;
+  category: string;
+  price_range: string;
+  image_url: string;
+  description: string;
+  style_tags: string[];
+  similarity: number;
+}
+
 export default function MoodboardPage() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'outfits' | 'items' | 'recommended'>('outfits');
   const [outfits, setOutfits] = useState<Outfit[]>([]);
+  const [recommendedItems, setRecommendedItems] = useState<RecommendedItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingRecommended, setLoadingRecommended] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedOutfit, setSelectedOutfit] = useState<Outfit | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -48,6 +62,13 @@ export default function MoodboardPage() {
       fetchOutfits();
     }
   }, [user]);
+
+  useEffect(() => {
+    // Fetch recommended items when outfits are loaded
+    if (outfits.length > 0) {
+      fetchRecommendedItems();
+    }
+  }, [outfits]);
 
   const fetchOutfits = async () => {
     if (!user) return;
@@ -71,6 +92,50 @@ export default function MoodboardPage() {
       setError(err instanceof Error ? err.message : 'Failed to load outfits');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchRecommendedItems = async () => {
+    if (outfits.length === 0) return;
+
+    try {
+      setLoadingRecommended(true);
+
+      const supabase = getSupabase();
+
+      // Use the most recent outfit's embedding for recommendations
+      const mostRecentOutfit = outfits[0];
+
+      if (!mostRecentOutfit.embedding) {
+        console.warn('Most recent outfit has no embedding');
+        return;
+      }
+
+      // Call the find_similar_items RPC function
+      const { data, error: rpcError } = await supabase.rpc('find_similar_items', {
+        query_embedding: mostRecentOutfit.embedding,
+        match_threshold: 0.5,
+        match_count: 12,
+      });
+
+      if (rpcError) {
+        console.error('Error fetching recommendations:', rpcError);
+        // Fall back to showing all items if vector search fails
+        const { data: fallbackData } = await supabase
+          .from('items')
+          .select('*')
+          .eq('in_stock', true)
+          .limit(12);
+
+        setRecommendedItems(fallbackData || []);
+        return;
+      }
+
+      setRecommendedItems(data || []);
+    } catch (err) {
+      console.error('Error fetching recommended items:', err);
+    } finally {
+      setLoadingRecommended(false);
     }
   };
 
@@ -220,21 +285,61 @@ export default function MoodboardPage() {
             )
           ) : (
             // Recommended Items Tab
-            <div className="text-center py-20">
-              <div className="text-6xl mb-4">🎯</div>
-              <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
-                Personalized Recommendations
-              </h3>
-              <p className="text-neutral-600 dark:text-neutral-300 mb-6">
-                Get AI-powered recommendations based on your uploaded outfits
-              </p>
-              <Link
-                href="/upload"
-                className="inline-block bg-primary-500 dark:bg-primary-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-primary-600 dark:hover:bg-primary-700 transition-colors"
-              >
-                Upload an Outfit
-              </Link>
-            </div>
+            loadingRecommended ? (
+              <div className="text-center py-20">
+                <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-500 border-t-transparent mx-auto mb-4"></div>
+                <p className="text-neutral-600 dark:text-neutral-300">Finding items you'll love...</p>
+              </div>
+            ) : recommendedItems.length > 0 ? (
+              <>
+                <div className="mb-6">
+                  <p className="text-neutral-600 dark:text-neutral-300 text-sm">
+                    Based on your most recent outfit, we found {recommendedItems.length} items you might like
+                  </p>
+                </div>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {recommendedItems.map((item) => (
+                    <ItemCard
+                      key={item.id}
+                      id={item.id}
+                      brand={item.brand}
+                      name={item.name}
+                      category={item.category}
+                      priceRange={item.price_range}
+                      imageUrl={item.image_url}
+                      description={item.description}
+                      styleTags={item.style_tags}
+                    />
+                  ))}
+                </div>
+              </>
+            ) : outfits.length === 0 ? (
+              <div className="text-center py-20">
+                <div className="text-6xl mb-4">🎯</div>
+                <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
+                  Personalized Recommendations
+                </h3>
+                <p className="text-neutral-600 dark:text-neutral-300 mb-6">
+                  Upload an outfit to get AI-powered recommendations
+                </p>
+                <Link
+                  href="/upload"
+                  className="inline-block bg-primary-500 dark:bg-primary-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-primary-600 dark:hover:bg-primary-700 transition-colors"
+                >
+                  Upload an Outfit
+                </Link>
+              </div>
+            ) : (
+              <div className="text-center py-20">
+                <div className="text-6xl mb-4">🔍</div>
+                <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
+                  No recommendations available
+                </h3>
+                <p className="text-neutral-600 dark:text-neutral-300 mb-6">
+                  We couldn't find any matching items right now. Try uploading more outfits!
+                </p>
+              </div>
+            )
           )}
         </div>
 
