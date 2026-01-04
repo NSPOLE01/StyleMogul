@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import StyleTag from './style-tag';
 import ColorSwatch from './color-swatch';
@@ -10,13 +10,16 @@ interface OutfitDetailModalProps {
   outfit: Outfit | null;
   isOpen: boolean;
   onClose: () => void;
+  onDelete?: (outfitId: string) => void;
 }
 
 export default function OutfitDetailModal({
   outfit,
   isOpen,
   onClose,
+  onDelete,
 }: OutfitDetailModalProps) {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   // Close on escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -156,6 +159,44 @@ export default function OutfitDetailModal({
                       </div>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* Delete Button */}
+              {onDelete && (
+                <div className="pt-6 border-t border-neutral-200 dark:border-neutral-700">
+                  {!showDeleteConfirm ? (
+                    <button
+                      onClick={() => setShowDeleteConfirm(true)}
+                      className="w-full px-4 py-3 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-semibold hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                    >
+                      Delete Outfit
+                    </button>
+                  ) : (
+                    <div className="space-y-3">
+                      <p className="text-sm text-neutral-700 dark:text-neutral-300 text-center">
+                        Are you sure you want to delete this outfit? This action cannot be undone.
+                      </p>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => setShowDeleteConfirm(false)}
+                          className="flex-1 px-4 py-3 rounded-2xl bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 font-semibold hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={() => {
+                            onDelete(outfit.id);
+                            setShowDeleteConfirm(false);
+                            onClose();
+                          }}
+                          className="flex-1 px-4 py-3 rounded-2xl bg-red-600 dark:bg-red-700 text-white font-semibold hover:bg-red-700 dark:hover:bg-red-800 transition-colors"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

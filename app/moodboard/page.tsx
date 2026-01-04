@@ -199,6 +199,30 @@ export default function MoodboardPage() {
     setTimeout(() => setSelectedOutfit(null), 200);
   };
 
+  const handleDeleteOutfit = async (outfitId: string) => {
+    try {
+      const supabase = getSupabase();
+
+      // Delete the outfit from the database
+      const { error: deleteError } = await supabase
+        .from('outfits')
+        .delete()
+        .eq('id', outfitId);
+
+      if (deleteError) throw deleteError;
+
+      // Update local state to remove the outfit
+      setOutfits(prevOutfits => prevOutfits.filter(outfit => outfit.id !== outfitId));
+
+      console.log('Outfit deleted successfully');
+
+      // Recommendations will automatically refresh due to the useEffect watching outfits
+    } catch (err) {
+      console.error('Error deleting outfit:', err);
+      alert('Failed to delete outfit. Please try again.');
+    }
+  };
+
   return (
     <ProtectedRoute>
       <main className="min-h-screen bg-neutral-50 dark:bg-neutral-900">
@@ -403,6 +427,7 @@ export default function MoodboardPage() {
           outfit={selectedOutfit}
           isOpen={isModalOpen}
           onClose={handleCloseModal}
+          onDelete={handleDeleteOutfit}
         />
       </main>
     </ProtectedRoute>
