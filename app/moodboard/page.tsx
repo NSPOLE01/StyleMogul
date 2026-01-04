@@ -302,6 +302,7 @@ export default function MoodboardPage() {
                     colors={outfit.colors}
                     description={outfit.description}
                     onClick={() => handleOutfitClick(outfit)}
+                    onDelete={handleDeleteOutfit}
                   />
                 ))}
               </div>
