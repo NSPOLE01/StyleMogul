@@ -158,8 +158,6 @@ export default function MoodboardPage() {
         averageEmbedding[i] /= numOutfits;
       }
 
-      console.log(`Using average embedding from ${numOutfits} outfit(s) for recommendations`);
-
       // Call the find_similar_items RPC function with the average embedding
       const { data, error: rpcError } = await supabase.rpc('find_similar_items', {
         query_embedding: averageEmbedding,
