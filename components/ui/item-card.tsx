@@ -11,6 +11,7 @@ interface ItemCardProps {
   description?: string;
   styleTags?: string[];
   similarity?: number;
+  isSaved?: boolean;
   onSave?: (id: string) => void;
 }
 
@@ -24,6 +25,7 @@ export default function ItemCard({
   description,
   styleTags,
   similarity,
+  isSaved = false,
   onSave,
 }: ItemCardProps) {
   return (
@@ -45,12 +47,18 @@ export default function ItemCard({
               e.stopPropagation();
               onSave(id);
             }}
-            className="absolute top-3 right-3 bg-white/90 dark:bg-neutral-800/90 backdrop-blur-sm rounded-full p-2.5 hover:bg-white dark:hover:bg-neutral-800 transition-all hover:scale-110 shadow-soft"
-            aria-label="Save item"
+            className={`absolute top-3 right-3 backdrop-blur-sm rounded-full p-2.5 transition-all hover:scale-110 shadow-soft ${
+              isSaved
+                ? 'bg-red-500 dark:bg-red-600 hover:bg-red-600 dark:hover:bg-red-700'
+                : 'bg-white/90 dark:bg-neutral-800/90 hover:bg-white dark:hover:bg-neutral-800'
+            }`}
+            aria-label={isSaved ? 'Unsave item' : 'Save item'}
           >
             <svg
-              className="w-5 h-5 text-neutral-700 dark:text-neutral-300"
-              fill="none"
+              className={`w-5 h-5 transition-colors ${
+                isSaved ? 'text-white' : 'text-neutral-700 dark:text-neutral-300'
+              }`}
+              fill={isSaved ? 'currentColor' : 'none'}
               stroke="currentColor"
               viewBox="0 0 24 24"
             >

@@ -11,29 +11,6 @@ import { getSupabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
 import type { Outfit } from '@/lib/supabase';
 
-const mockSavedItems = [
-  {
-    id: '1',
-    brand: 'Everlane',
-    name: 'Organic Cotton Tee',
-    category: 'tops',
-    price_range: '$',
-    image_url: 'https://placehold.co/400x500/f5f5f4/a8a29e?text=Organic+Tee',
-    description: 'Classic minimalist tee in organic cotton',
-    style_tags: ['minimalist', 'casual', 'basics'],
-  },
-  {
-    id: '2',
-    brand: 'Reformation',
-    name: 'Vintage Floral Dress',
-    category: 'dresses',
-    price_range: '$$',
-    image_url: 'https://placehold.co/400x500/fce8e6/e35e52?text=Floral+Dress',
-    description: 'Sustainable floral midi dress',
-    style_tags: ['vintage', 'bohemian'],
-  },
-];
-
 interface RecommendedItem {
   id: string;
   brand: string;
@@ -51,8 +28,11 @@ export default function MoodboardPage() {
   const [activeTab, setActiveTab] = useState<'outfits' | 'items' | 'recommended'>('outfits');
   const [outfits, setOutfits] = useState<Outfit[]>([]);
   const [recommendedItems, setRecommendedItems] = useState<RecommendedItem[]>([]);
+  const [savedItems, setSavedItems] = useState<RecommendedItem[]>([]);
+  const [savedItemIds, setSavedItemIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [loadingRecommended, setLoadingRecommended] = useState(false);
+  const [loadingSavedItems, setLoadingSavedItems] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedOutfit, setSelectedOutfit] = useState<Outfit | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -60,6 +40,7 @@ export default function MoodboardPage() {
   useEffect(() => {
     if (user) {
       fetchOutfits();
+      fetchSavedItems();
     }
   }, [user]);
 
@@ -186,6 +167,101 @@ export default function MoodboardPage() {
     }
   };
 
+  const fetchSavedItems = async () => {
+    if (!user) return;
+
+    try {
+      setLoadingSavedItems(true);
+      const supabase = getSupabase();
+
+      // Fetch saved items with full item details
+      const { data: savedItemsData, error: fetchError } = await supabase
+        .from('saved_items')
+        .select(`
+          id,
+          item_id,
+          created_at,
+          items (
+            id,
+            brand,
+            name,
+            category,
+            price_range,
+            image_url,
+            description,
+            style_tags
+          )
+        `)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (fetchError) throw fetchError;
+
+      // Extract item data and create saved items list
+      const items = (savedItemsData || [])
+        .map((saved: any) => saved.items)
+        .filter((item: any) => item !== null);
+
+      setSavedItems(items);
+
+      // Track saved item IDs for quick lookup
+      const itemIds = new Set(items.map((item: any) => item.id));
+      setSavedItemIds(itemIds);
+    } catch (err) {
+      console.error('Error fetching saved items:', err);
+    } finally {
+      setLoadingSavedItems(false);
+    }
+  };
+
+  const handleSaveItem = async (itemId: string) => {
+    if (!user) return;
+
+    const isSaved = savedItemIds.has(itemId);
+
+    try {
+      const supabase = getSupabase();
+
+      if (isSaved) {
+        // Unsave the item
+        const { error } = await supabase
+          .from('saved_items')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('item_id', itemId);
+
+        if (error) throw error;
+
+        // Update local state
+        setSavedItemIds(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(itemId);
+          return newSet;
+        });
+        setSavedItems(prev => prev.filter(item => item.id !== itemId));
+      } else {
+        // Save the item
+        const { error } = await supabase
+          .from('saved_items')
+          .insert({
+            user_id: user.id,
+            item_id: itemId,
+          });
+
+        if (error) throw error;
+
+        // Update local state
+        setSavedItemIds(prev => new Set(prev).add(itemId));
+
+        // Refresh saved items to get the full item data
+        await fetchSavedItems();
+      }
+    } catch (err) {
+      console.error('Error saving/unsaving item:', err);
+      alert('Failed to save item. Please try again.');
+    }
+  };
+
   const handleOutfitClick = (outfit: Outfit) => {
     setSelectedOutfit(outfit);
     setIsModalOpen(true);
@@ -242,8 +318,8 @@ export default function MoodboardPage() {
             <button
               onClick={() => setActiveTab('outfits')}
               className={`pb-4 px-2 font-semibold transition-colors border-b-2 ${activeTab === 'outfits'
-                  ? 'border-primary-500 text-primary-500'
-                  : 'border-transparent text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                ? 'border-primary-500 text-primary-500'
+                : 'border-transparent text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
                 }`}
             >
               My Outfits ({loading ? '...' : outfits.length})
@@ -251,17 +327,17 @@ export default function MoodboardPage() {
             <button
               onClick={() => setActiveTab('items')}
               className={`pb-4 px-2 font-semibold transition-colors border-b-2 ${activeTab === 'items'
-                  ? 'border-primary-500 text-primary-500'
-                  : 'border-transparent text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                ? 'border-primary-500 text-primary-500'
+                : 'border-transparent text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
                 }`}
             >
-              Saved Items ({mockSavedItems.length})
+              Saved Items ({loadingSavedItems ? '...' : savedItems.length})
             </button>
             <button
               onClick={() => setActiveTab('recommended')}
               className={`pb-4 px-2 font-semibold transition-colors border-b-2 ${activeTab === 'recommended'
-                  ? 'border-primary-500 text-primary-500'
-                  : 'border-transparent text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                ? 'border-primary-500 text-primary-500'
+                : 'border-transparent text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
                 }`}
             >
               Recommended
@@ -322,9 +398,14 @@ export default function MoodboardPage() {
               </div>
             )
           ) : activeTab === 'items' ? (
-            mockSavedItems.length > 0 ? (
+            loadingSavedItems ? (
+              <div className="text-center py-20">
+                <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-500 border-t-transparent mx-auto mb-4"></div>
+                <p className="text-neutral-600 dark:text-neutral-300">Loading your saved items...</p>
+              </div>
+            ) : savedItems.length > 0 ? (
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {mockSavedItems.map((item) => (
+                {savedItems.map((item) => (
                   <ItemCard
                     key={item.id}
                     id={item.id}
@@ -335,6 +416,8 @@ export default function MoodboardPage() {
                     imageUrl={item.image_url}
                     description={item.description}
                     styleTags={item.style_tags}
+                    isSaved={true}
+                    onSave={handleSaveItem}
                   />
                 ))}
               </div>
@@ -345,14 +428,14 @@ export default function MoodboardPage() {
                   No saved items yet
                 </h3>
                 <p className="text-neutral-600 dark:text-neutral-300 mb-6">
-                  Upload an outfit to discover items you'll love
+                  Heart items from the recommendations to save them here
                 </p>
-                <Link
-                  href="/upload"
+                <button
+                  onClick={() => setActiveTab('recommended')}
                   className="inline-block bg-primary-500 dark:bg-primary-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-primary-600 dark:hover:bg-primary-700 transition-colors"
                 >
-                  Start Discovering
-                </Link>
+                  View Recommendations
+                </button>
               </div>
             )
           ) : (
@@ -381,6 +464,9 @@ export default function MoodboardPage() {
                       imageUrl={item.image_url}
                       description={item.description}
                       styleTags={item.style_tags}
+                      similarity={item.similarity}
+                      isSaved={savedItemIds.has(item.id)}
+                      onSave={handleSaveItem}
                     />
                   ))}
                 </div>
