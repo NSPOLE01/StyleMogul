@@ -340,7 +340,7 @@ export default function MoodboardPage() {
                 : 'border-transparent text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
                 }`}
             >
-              Recommended
+              Recommended ({loadingRecommended ? '...' : recommendedItems.length})
             </button>
           </div>
 
