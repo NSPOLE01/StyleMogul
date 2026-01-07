@@ -148,7 +148,6 @@ export default function MoodboardPage() {
 
       if (rpcError) {
         console.error('Error fetching recommendations:', rpcError);
-        // Fall back to showing all items if vector search fails
         const { data: fallbackData } = await supabase
           .from('items')
           .select('*')
