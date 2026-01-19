@@ -241,8 +241,16 @@ export default function UploadPage() {
                 </div>
               </div>
             ) : (
-              <div className="bg-white dark:bg-neutral-800 rounded-3xl p-8 shadow-soft text-center text-neutral-500 dark:text-neutral-400">
-                Upload a photo to see AI analysis
+              <div className="bg-white dark:bg-neutral-800 rounded-3xl p-12 shadow-soft text-center">
+                <div className="flex flex-col items-center justify-center gap-4 min-h-[200px]">
+                  <div className="text-6xl">🤖</div>
+                  <p className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
+                    AI Style Analysis
+                  </p>
+                  <p className="text-neutral-600 dark:text-neutral-300">
+                    Upload a photo to see AI analysis
+                  </p>
+                </div>
               </div>
             )}
           </div>
