@@ -43,7 +43,7 @@ export default function UploadDropzone({ onFileSelect, isUploading = false }: Up
       onDragLeave={handleDragLeave}
       className={`
         relative border-2 border-dashed rounded-3xl p-12 text-center cursor-pointer
-        transition-all duration-200
+        transition-all duration-200 min-h-[400px] flex items-center justify-center
         ${isDragging
           ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
           : 'border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 hover:border-primary-400 dark:hover:border-primary-500 hover:bg-neutral-50 dark:hover:bg-neutral-700'
