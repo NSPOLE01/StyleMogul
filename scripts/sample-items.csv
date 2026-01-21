@@ -1,6 +1,6 @@
-brand,name,category,price_range,image_url,style_tags
-Nike,Air Max 90,shoes,$$,https://placehold.co/400x500/f5f5f4/a8a29e?text=Air+Max,casual;athletic;streetwear
-Everlane,Organic Cotton Tee,tops,$,https://placehold.co/400x500/ffffff/cccccc?text=Cotton+Tee,minimalist;casual;basics
-Reformation,Floral Midi Dress,dresses,$$$,https://placehold.co/400x500/fce8e6/e35e52?text=Floral+Dress,vintage;bohemian;feminine
-Levi's,501 Original Jeans,pants,$$,https://placehold.co/400x500/4a5568/1a202c?text=Levis+501,classic;casual;denim
-Zara,Oversized Blazer,outerwear,$$$,https://placehold.co/400x500/000000/ffffff?text=Blazer,professional;modern;tailored
+brand,name,category,price_range,image_url,product_url,style_tags
+Nike,Air Max 90,shoes,$$,https://placehold.co/400x500/f5f5f4/a8a29e?text=Air+Max,https://nike.com/air-max-90,casual;athletic;streetwear
+Everlane,Organic Cotton Tee,tops,$,https://placehold.co/400x500/ffffff/cccccc?text=Cotton+Tee,https://everlane.com/cotton-tee,minimalist;casual;basics
+Reformation,Floral Midi Dress,dresses,$$$,https://placehold.co/400x500/fce8e6/e35e52?text=Floral+Dress,https://reformation.com/floral-dress,vintage;bohemian;feminine
+Levi's,501 Original Jeans,pants,$$,https://placehold.co/400x500/4a5568/1a202c?text=Levis+501,https://levis.com/501-jeans,classic;casual;denim
+Zara,Oversized Blazer,outerwear,$$$,https://placehold.co/400x500/000000/ffffff?text=Blazer,https://zara.com/blazer,professional;modern;tailored

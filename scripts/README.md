@@ -13,6 +13,7 @@ Your CSV file should have the following columns:
 | `category` | Yes | Product category | shoes, tops, dresses, pants, outerwear |
 | `price_range` | Yes | Price tier | $, $$, $$$, $$$$ |
 | `image_url` | Yes | URL to product image | https://example.com/image.jpg |
+| `product_url` | No | Link to product page | https://nike.com/air-max-90 |
 | `style_tags` | No | Semicolon-separated tags | casual;athletic;streetwear |
 
 **Note:** If `style_tags` is omitted, GPT-4 Vision will generate them automatically.
@@ -20,9 +21,9 @@ Your CSV file should have the following columns:
 ## Example CSV
 
 ```csv
-brand,name,category,price_range,image_url,style_tags
-Nike,Air Max 90,shoes,$$,https://example.com/image.jpg,casual;athletic;streetwear
-Everlane,Organic Cotton Tee,tops,$,https://example.com/image.jpg,minimalist;casual;basics
+brand,name,category,price_range,image_url,product_url,style_tags
+Nike,Air Max 90,shoes,$$,https://example.com/image.jpg,https://nike.com/air-max-90,casual;athletic;streetwear
+Everlane,Organic Cotton Tee,tops,$,https://example.com/image.jpg,https://everlane.com/cotton-tee,minimalist;casual;basics
 ```
 
 See `sample-items.csv` for a complete example.

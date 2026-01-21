@@ -12,6 +12,7 @@ interface CSVItem {
   category: string;
   price_range: string;
   image_url: string;
+  product_url?: string; // Optional - link to product page
   style_tags?: string; // Optional - semicolon separated
 }
 
@@ -60,8 +61,19 @@ Format your response as JSON:
       throw new Error('No content in response');
     }
 
-    // Parse JSON response
-    const parsed = JSON.parse(content);
+    console.log('GPT-4 Vision raw response:', content);
+
+    // Parse JSON response - handle potential markdown code blocks
+    let jsonContent = content.trim();
+    if (jsonContent.startsWith('```json')) {
+      jsonContent = jsonContent.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+    } else if (jsonContent.startsWith('```')) {
+      jsonContent = jsonContent.replace(/```\n?/g, '');
+    }
+
+    const parsed = JSON.parse(jsonContent);
+    console.log('Parsed colors:', parsed.colors);
+
     return {
       description: parsed.description,
       styleTags: parsed.styleTags,
@@ -140,6 +152,7 @@ export async function POST(request: NextRequest) {
           category: item.category,
           price_range: item.price_range,
           image_url: item.image_url,
+          product_url: item.product_url || null,
           description: analysis.description,
           style_tags: styleTags,
           colors: analysis.colors,
