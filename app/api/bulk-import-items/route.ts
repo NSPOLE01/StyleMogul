@@ -18,6 +18,7 @@ interface CSVItem {
 async function analyzeProductImage(imageUrl: string, productName: string): Promise<{
   description: string;
   styleTags: string[];
+  colors: string[];
 }> {
   try {
     const response = await openai.chat.completions.create({
@@ -31,11 +32,13 @@ async function analyzeProductImage(imageUrl: string, productName: string): Promi
               text: `Analyze this fashion product image for "${productName}". Provide:
 1. A detailed 2-3 sentence product description
 2. 3-5 style tags (e.g., casual, formal, vintage, minimalist, bohemian, athletic, etc.)
+3. The dominant colors in the product (2-4 colors, using common color names like black, white, navy, beige, red, etc.)
 
 Format your response as JSON:
 {
   "description": "your description here",
-  "styleTags": ["tag1", "tag2", "tag3"]
+  "styleTags": ["tag1", "tag2", "tag3"],
+  "colors": ["color1", "color2"]
 }`,
             },
             {
@@ -48,7 +51,7 @@ Format your response as JSON:
           ],
         },
       ],
-      max_tokens: 200,
+      max_tokens: 250,
       temperature: 0.7,
     });
 
@@ -62,6 +65,7 @@ Format your response as JSON:
     return {
       description: parsed.description,
       styleTags: parsed.styleTags,
+      colors: parsed.colors || [],
     };
   } catch (error) {
     console.error('Error analyzing product image:', error);
@@ -69,6 +73,7 @@ Format your response as JSON:
     return {
       description: `${productName} - a stylish fashion item`,
       styleTags: ['fashion', 'style'],
+      colors: [],
     };
   }
 }
@@ -122,6 +127,7 @@ export async function POST(request: NextRequest) {
           Product: ${item.name}
           Category: ${item.category}
           Style: ${styleTags.join(', ')}
+          Colors: ${analysis.colors.join(', ')}
           Description: ${analysis.description}
         `.trim();
 
@@ -136,6 +142,7 @@ export async function POST(request: NextRequest) {
           image_url: item.image_url,
           description: analysis.description,
           style_tags: styleTags,
+          colors: analysis.colors,
           embedding: embedding,
           in_stock: true,
         });
