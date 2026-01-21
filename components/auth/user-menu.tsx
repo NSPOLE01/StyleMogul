@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useAuthModal } from '@/hooks/use-auth-modal';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function UserMenu() {
   const { user, loading, signOut } = useAuth();
@@ -62,14 +63,17 @@ export default function UserMenu() {
       {/* User Avatar Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-10 h-10 rounded-full bg-primary-500 text-white font-semibold flex items-center justify-center hover:bg-primary-600 transition-colors"
+        className="w-10 h-10 rounded-full bg-primary-500 text-white font-semibold flex items-center justify-center hover:bg-primary-600 transition-colors overflow-hidden"
       >
         {user.avatar_url ? (
-          <img
+          <Image
             src={user.avatar_url}
             alt={user.full_name || user.email}
-            className="w-full h-full rounded-full object-cover transition-opacity duration-300"
+            width={40}
+            height={40}
+            className="rounded-full object-cover"
             key={user.avatar_url}
+            unoptimized
           />
         ) : (
           <span>{initials}</span>

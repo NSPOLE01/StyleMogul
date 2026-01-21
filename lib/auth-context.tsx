@@ -92,12 +92,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .single();
 
       if (profile) {
-        setUser({
+        const updatedUser = {
           id: user.id,
           email: user.email,
           full_name: profile.full_name,
           avatar_url: profile.avatar_url,
-        });
+        };
+
+        setUser(updatedUser);
+
+        // Update localStorage so avatar persists on page refresh
+        localStorage.setItem('user', JSON.stringify(updatedUser));
       }
     } catch (error) {
       console.error('Error refreshing user:', error);
