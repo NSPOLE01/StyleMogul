@@ -102,15 +102,10 @@ export default function ItemDetailModal({
             {/* Right: Details */}
             <div className="flex flex-col gap-6">
               <div>
-                {/* Brand & Category */}
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-semibold text-primary-500 dark:text-primary-400 uppercase tracking-wide">
-                    {item.brand}
-                  </p>
-                  <p className="text-sm text-neutral-500 dark:text-neutral-400 uppercase">
-                    {item.category}
-                  </p>
-                </div>
+                {/* Brand */}
+                <p className="text-sm font-semibold text-primary-500 dark:text-primary-400 uppercase tracking-wide mb-2">
+                  {item.brand}
+                </p>
 
                 {/* Name */}
                 <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2">
@@ -118,8 +113,13 @@ export default function ItemDetailModal({
                 </h2>
 
                 {/* Price */}
-                <p className="text-lg text-neutral-600 dark:text-neutral-300 mb-4">
+                <p className="text-lg text-neutral-600 dark:text-neutral-300 mb-2">
                   {item.price_range}
+                </p>
+
+                {/* Category */}
+                <p className="text-sm text-neutral-500 dark:text-neutral-400 uppercase">
+                  {item.category}
                 </p>
               </div>
 
