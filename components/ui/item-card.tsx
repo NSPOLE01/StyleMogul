@@ -15,6 +15,7 @@ interface ItemCardProps {
   similarity?: number;
   isSaved?: boolean;
   onSave?: (id: string) => void;
+  onClick?: () => void;
 }
 
 export default function ItemCard({
@@ -30,9 +31,13 @@ export default function ItemCard({
   similarity,
   isSaved = false,
   onSave,
+  onClick,
 }: ItemCardProps) {
   return (
-    <div className="bg-white dark:bg-neutral-800 rounded-3xl overflow-hidden shadow-soft hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+    <div
+      className={`bg-white dark:bg-neutral-800 rounded-3xl overflow-hidden shadow-soft hover:shadow-xl transition-all duration-300 hover:scale-[1.02] ${onClick ? 'cursor-pointer' : ''}`}
+      onClick={onClick}
+    >
       {/* Image */}
       <div className="relative aspect-[3/4] bg-neutral-100 dark:bg-neutral-700">
         <Image

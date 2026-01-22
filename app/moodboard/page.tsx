@@ -7,6 +7,7 @@ import ProtectedRoute from '@/components/protected-route';
 import OutfitCard from '@/components/ui/outfit-card';
 import ItemCard from '@/components/ui/item-card';
 import OutfitDetailModal from '@/components/ui/outfit-detail-modal';
+import ItemDetailModal from '@/components/ui/item-detail-modal';
 import { getSupabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
 import type { Outfit } from '@/lib/supabase';
@@ -21,6 +22,7 @@ interface RecommendedItem {
   description: string;
   style_tags: string[];
   colors: string[];
+  product_url?: string;
   similarity: number;
 }
 
@@ -37,6 +39,8 @@ export default function MoodboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedOutfit, setSelectedOutfit] = useState<Outfit | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<RecommendedItem | null>(null);
+  const [isItemModalOpen, setIsItemModalOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -190,7 +194,8 @@ export default function MoodboardPage() {
             image_url,
             description,
             style_tags,
-            colors
+            colors,
+            product_url
           )
         `)
         .eq('user_id', user.id)
@@ -272,6 +277,17 @@ export default function MoodboardPage() {
     setIsModalOpen(false);
     // Wait for modal animation before clearing selected outfit
     setTimeout(() => setSelectedOutfit(null), 200);
+  };
+
+  const handleItemClick = (item: RecommendedItem) => {
+    setSelectedItem(item);
+    setIsItemModalOpen(true);
+  };
+
+  const handleCloseItemModal = () => {
+    setIsItemModalOpen(false);
+    // Wait for modal animation before clearing selected item
+    setTimeout(() => setSelectedItem(null), 200);
   };
 
   const handleDeleteOutfit = async (outfitId: string) => {
@@ -420,6 +436,7 @@ export default function MoodboardPage() {
                     colors={item.colors}
                     isSaved={true}
                     onSave={handleSaveItem}
+                    onClick={() => handleItemClick(item)}
                   />
                 ))}
               </div>
@@ -470,6 +487,7 @@ export default function MoodboardPage() {
                       similarity={item.similarity}
                       isSaved={savedItemIds.has(item.id)}
                       onSave={handleSaveItem}
+                      onClick={() => handleItemClick(item)}
                     />
                   ))}
                 </div>
@@ -516,6 +534,15 @@ export default function MoodboardPage() {
           isOpen={isModalOpen}
           onClose={handleCloseModal}
           onDelete={handleDeleteOutfit}
+        />
+
+        {/* Item Detail Modal */}
+        <ItemDetailModal
+          item={selectedItem}
+          isOpen={isItemModalOpen}
+          onClose={handleCloseItemModal}
+          isSaved={selectedItem ? savedItemIds.has(selectedItem.id) : false}
+          onSave={handleSaveItem}
         />
       </main>
     </ProtectedRoute>

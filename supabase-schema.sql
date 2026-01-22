@@ -141,6 +141,7 @@ RETURNS TABLE (
   description text,
   style_tags text[],
   colors text[],
+  product_url text,
   similarity float
 )
 LANGUAGE plpgsql
@@ -157,6 +158,7 @@ BEGIN
     items.description,
     items.style_tags,
     items.colors,
+    items.product_url,
     1 - (items.embedding <=> query_embedding) as similarity
   FROM public.items
   WHERE
