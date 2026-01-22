@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import StyleTag from './style-tag';
+import ColorSwatch from './color-swatch';
 
 interface ItemCardProps {
   id: string;
@@ -10,6 +11,7 @@ interface ItemCardProps {
   imageUrl: string;
   description?: string;
   styleTags?: string[];
+  colors?: string[];
   similarity?: number;
   isSaved?: boolean;
   onSave?: (id: string) => void;
@@ -24,6 +26,7 @@ export default function ItemCard({
   imageUrl,
   description,
   styleTags,
+  colors,
   similarity,
   isSaved = false,
   onSave,
@@ -102,11 +105,13 @@ export default function ItemCard({
           {priceRange}
         </p>
 
-        {/* Description */}
-        {description && (
-          <p className="text-neutral-600 dark:text-neutral-300 text-sm mb-3 line-clamp-2">
-            {description}
-          </p>
+        {/* Colors */}
+        {colors && colors.length > 0 && (
+          <div className="flex gap-2 mb-3">
+            {colors.slice(0, 5).map((color, i) => (
+              <ColorSwatch key={i} color={color} />
+            ))}
+          </div>
         )}
 
         {/* Style Tags */}

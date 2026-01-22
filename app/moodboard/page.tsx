@@ -20,6 +20,7 @@ interface RecommendedItem {
   image_url: string;
   description: string;
   style_tags: string[];
+  colors: string[];
   similarity: number;
 }
 
@@ -188,7 +189,8 @@ export default function MoodboardPage() {
             price_range,
             image_url,
             description,
-            style_tags
+            style_tags,
+            colors
           )
         `)
         .eq('user_id', user.id)
@@ -415,6 +417,7 @@ export default function MoodboardPage() {
                     imageUrl={item.image_url}
                     description={item.description}
                     styleTags={item.style_tags}
+                    colors={item.colors}
                     isSaved={true}
                     onSave={handleSaveItem}
                   />
@@ -463,6 +466,7 @@ export default function MoodboardPage() {
                       imageUrl={item.image_url}
                       description={item.description}
                       styleTags={item.style_tags}
+                      colors={item.colors}
                       similarity={item.similarity}
                       isSaved={savedItemIds.has(item.id)}
                       onSave={handleSaveItem}
