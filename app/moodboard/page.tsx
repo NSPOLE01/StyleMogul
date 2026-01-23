@@ -8,6 +8,8 @@ import OutfitCard from '@/components/ui/outfit-card';
 import ItemCard from '@/components/ui/item-card';
 import OutfitDetailModal from '@/components/ui/outfit-detail-modal';
 import ItemDetailModal from '@/components/ui/item-detail-modal';
+import ColorSwatch from '@/components/ui/color-swatch';
+import StyleTag from '@/components/ui/style-tag';
 import { getSupabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
 import type { Outfit } from '@/lib/supabase';
@@ -41,6 +43,8 @@ export default function MoodboardPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<RecommendedItem | null>(null);
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
+  const [topColors, setTopColors] = useState<{ color: string; count: number }[]>([]);
+  const [topStyles, setTopStyles] = useState<{ style: string; count: number }[]>([]);
 
   useEffect(() => {
     if (user) {
@@ -53,8 +57,48 @@ export default function MoodboardPage() {
     // Fetch recommended items when outfits are loaded
     if (outfits.length > 0) {
       fetchRecommendedItems();
+      analyzeOutfits();
     }
   }, [outfits]);
+
+  const analyzeOutfits = () => {
+    if (outfits.length === 0) {
+      setTopColors([]);
+      setTopStyles([]);
+      return;
+    }
+
+    // Count colors
+    const colorCounts: Record<string, number> = {};
+    outfits.forEach(outfit => {
+      outfit.colors?.forEach(color => {
+        colorCounts[color] = (colorCounts[color] || 0) + 1;
+      });
+    });
+
+    // Count style tags
+    const styleCounts: Record<string, number> = {};
+    outfits.forEach(outfit => {
+      outfit.style_tags?.forEach(tag => {
+        styleCounts[tag] = (styleCounts[tag] || 0) + 1;
+      });
+    });
+
+    // Sort and get top 5 colors
+    const sortedColors = Object.entries(colorCounts)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 5)
+      .map(([color, count]) => ({ color, count }));
+
+    // Sort and get top 5 styles
+    const sortedStyles = Object.entries(styleCounts)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 5)
+      .map(([style, count]) => ({ style, count }));
+
+    setTopColors(sortedColors);
+    setTopStyles(sortedStyles);
+  };
 
   const fetchOutfits = async () => {
     if (!user) return;
@@ -329,6 +373,59 @@ export default function MoodboardPage() {
               All your saved outfits and favorite items in one place
             </p>
           </div>
+
+          {/* Top Colors and Styles */}
+          {outfits.length > 0 && (topColors.length > 0 || topStyles.length > 0) && (
+            <div className="bg-white dark:bg-neutral-800 rounded-3xl p-6 shadow-soft mb-8">
+              <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-6">
+                Top Colors and Styles
+              </h2>
+              <div className="grid md:grid-cols-2 gap-8">
+                {/* Top Colors */}
+                {topColors.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-4">
+                      Most Used Colors
+                    </h3>
+                    <div className="flex flex-wrap gap-4">
+                      {topColors.map(({ color, count }) => (
+                        <div key={color} className="flex items-center gap-3">
+                          <ColorSwatch color={color} size="lg" />
+                          <div>
+                            <p className="text-sm font-medium text-neutral-900 dark:text-white capitalize">
+                              {color}
+                            </p>
+                            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                              {count} {count === 1 ? 'outfit' : 'outfits'}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Top Styles */}
+                {topStyles.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-4">
+                      Most Used Styles
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {topStyles.map(({ style, count }) => (
+                        <div key={style} className="flex items-center gap-2">
+                          <StyleTag label={style} variant="primary" />
+                          <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                            ×{count}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Tabs */}
           <div className="flex gap-4 mb-8 border-b border-neutral-200 dark:border-neutral-700">
