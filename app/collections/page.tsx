@@ -85,6 +85,9 @@ export default function CollectionsPage() {
                 </p>
               </div>
             </div>
+            <button className="mt-8 bg-primary-500 dark:bg-primary-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-primary-600 dark:hover:bg-primary-700 transition-colors">
+              Create Your First Collection
+            </button>
           </div>
         </div>
       </main>
