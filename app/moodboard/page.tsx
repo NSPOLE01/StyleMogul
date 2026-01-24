@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Navigation from '@/components/navigation';
 import ProtectedRoute from '@/components/protected-route';
 import OutfitCard from '@/components/ui/outfit-card';
@@ -30,6 +30,7 @@ interface RecommendedItem {
 
 export default function MoodboardPage() {
   const { user } = useAuth();
+  const filterRef = useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState<'outfits' | 'items' | 'recommended'>('outfits');
   const [outfits, setOutfits] = useState<Outfit[]>([]);
   const [recommendedItems, setRecommendedItems] = useState<RecommendedItem[]>([]);
@@ -45,6 +46,18 @@ export default function MoodboardPage() {
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
   const [topColors, setTopColors] = useState<{ color: string; count: number }[]>([]);
   const [topStyles, setTopStyles] = useState<{ style: string; count: number }[]>([]);
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedFilters, setSelectedFilters] = useState<{
+    styles: string[];
+    colors: string[];
+    prices: string[];
+    categories: string[];
+  }>({
+    styles: [],
+    colors: [],
+    prices: [],
+    categories: [],
+  });
 
   useEffect(() => {
     if (user) {
@@ -53,6 +66,23 @@ export default function MoodboardPage() {
     }
   }, [user]);
 
+  // Close filter dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setShowFilters(false);
+      }
+    };
+
+    if (showFilters) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showFilters]);
+
   useEffect(() => {
     // Fetch recommended items when outfits are loaded
     if (outfits.length > 0) {
@@ -60,6 +90,72 @@ export default function MoodboardPage() {
       analyzeOutfits();
     }
   }, [outfits]);
+
+  const getUniqueFilterValues = () => {
+    const allStyles = new Set<string>();
+    const allColors = new Set<string>();
+    const allPrices = new Set<string>();
+    const allCategories = new Set<string>();
+
+    recommendedItems.forEach(item => {
+      item.style_tags?.forEach(tag => allStyles.add(tag));
+      item.colors?.forEach(color => allColors.add(color));
+      if (item.price_range) allPrices.add(item.price_range);
+      if (item.category) allCategories.add(item.category);
+    });
+
+    return {
+      styles: Array.from(allStyles).sort(),
+      colors: Array.from(allColors).sort(),
+      prices: Array.from(allPrices).sort(),
+      categories: Array.from(allCategories).sort(),
+    };
+  };
+
+  const toggleFilter = (type: 'styles' | 'colors' | 'prices' | 'categories', value: string) => {
+    setSelectedFilters(prev => {
+      const current = prev[type];
+      const updated = current.includes(value)
+        ? current.filter(v => v !== value)
+        : [...current, value];
+      return { ...prev, [type]: updated };
+    });
+  };
+
+  const clearAllFilters = () => {
+    setSelectedFilters({
+      styles: [],
+      colors: [],
+      prices: [],
+      categories: [],
+    });
+  };
+
+  const filteredRecommendedItems = recommendedItems.filter(item => {
+    // If no filters selected, show all items
+    const hasActiveFilters =
+      selectedFilters.styles.length > 0 ||
+      selectedFilters.colors.length > 0 ||
+      selectedFilters.prices.length > 0 ||
+      selectedFilters.categories.length > 0;
+
+    if (!hasActiveFilters) return true;
+
+    // Check if item matches all selected filter categories
+    const matchesStyle = selectedFilters.styles.length === 0 ||
+      item.style_tags?.some(tag => selectedFilters.styles.includes(tag));
+
+    const matchesColor = selectedFilters.colors.length === 0 ||
+      item.colors?.some(color => selectedFilters.colors.includes(color));
+
+    const matchesPrice = selectedFilters.prices.length === 0 ||
+      selectedFilters.prices.includes(item.price_range);
+
+    const matchesCategory = selectedFilters.categories.length === 0 ||
+      selectedFilters.categories.includes(item.category);
+
+    return matchesStyle && matchesColor && matchesPrice && matchesCategory;
+  });
 
   const analyzeOutfits = () => {
     if (outfits.length === 0) {
@@ -563,31 +659,160 @@ export default function MoodboardPage() {
               </div>
             ) : recommendedItems.length > 0 ? (
               <>
-                <div className="mb-6">
+                <div className="mb-6 flex items-center justify-between">
                   <p className="text-neutral-600 dark:text-neutral-300 text-sm">
-                    Based on your {outfits.length} outfit{outfits.length === 1 ? '' : 's'}, we found {recommendedItems.length} item{recommendedItems.length === 1 ? '' : 's'} you might like
+                    Based on your {outfits.length} outfit{outfits.length === 1 ? '' : 's'}, we found {filteredRecommendedItems.length} item{filteredRecommendedItems.length === 1 ? '' : 's'} you might like
                   </p>
+                  <div className="relative" ref={filterRef}>
+                    <button
+                      onClick={() => setShowFilters(!showFilters)}
+                      className="flex items-center gap-2 px-4 py-2 rounded-full bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                      </svg>
+                      Filter
+                      {(selectedFilters.styles.length + selectedFilters.colors.length + selectedFilters.prices.length + selectedFilters.categories.length) > 0 && (
+                        <span className="bg-primary-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                          {selectedFilters.styles.length + selectedFilters.colors.length + selectedFilters.prices.length + selectedFilters.categories.length}
+                        </span>
+                      )}
+                    </button>
+
+                    {/* Filter Dropdown */}
+                    {showFilters && (
+                      <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-neutral-800 rounded-2xl shadow-xl border border-neutral-100 dark:border-neutral-700 p-4 z-10">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="font-semibold text-neutral-900 dark:text-white">Filters</h3>
+                          <button
+                            onClick={clearAllFilters}
+                            className="text-xs text-primary-500 dark:text-primary-400 hover:underline"
+                          >
+                            Clear all
+                          </button>
+                        </div>
+
+                        {/* Style Filter */}
+                        <div className="mb-4">
+                          <h4 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-2">Style</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {getUniqueFilterValues().styles.map(style => (
+                              <button
+                                key={style}
+                                onClick={() => toggleFilter('styles', style)}
+                                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                                  selectedFilters.styles.includes(style)
+                                    ? 'bg-primary-500 text-white'
+                                    : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600'
+                                }`}
+                              >
+                                {style}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Color Filter */}
+                        <div className="mb-4">
+                          <h4 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-2">Color</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {getUniqueFilterValues().colors.map(color => (
+                              <button
+                                key={color}
+                                onClick={() => toggleFilter('colors', color)}
+                                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors capitalize ${
+                                  selectedFilters.colors.includes(color)
+                                    ? 'bg-primary-500 text-white'
+                                    : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600'
+                                }`}
+                              >
+                                {color}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Price Filter */}
+                        <div className="mb-4">
+                          <h4 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-2">Price</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {getUniqueFilterValues().prices.map(price => (
+                              <button
+                                key={price}
+                                onClick={() => toggleFilter('prices', price)}
+                                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                                  selectedFilters.prices.includes(price)
+                                    ? 'bg-primary-500 text-white'
+                                    : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600'
+                                }`}
+                              >
+                                {price}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Category Filter */}
+                        <div>
+                          <h4 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-2">Category</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {getUniqueFilterValues().categories.map(category => (
+                              <button
+                                key={category}
+                                onClick={() => toggleFilter('categories', category)}
+                                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors capitalize ${
+                                  selectedFilters.categories.includes(category)
+                                    ? 'bg-primary-500 text-white'
+                                    : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600'
+                                }`}
+                              >
+                                {category}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {recommendedItems.map((item) => (
-                    <ItemCard
-                      key={item.id}
-                      id={item.id}
-                      brand={item.brand}
-                      name={item.name}
-                      category={item.category}
-                      priceRange={item.price_range}
-                      imageUrl={item.image_url}
-                      description={item.description}
-                      styleTags={item.style_tags}
-                      colors={item.colors}
-                      similarity={item.similarity}
-                      isSaved={savedItemIds.has(item.id)}
-                      onSave={handleSaveItem}
-                      onClick={() => handleItemClick(item)}
-                    />
-                  ))}
-                </div>
+                {filteredRecommendedItems.length > 0 ? (
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {filteredRecommendedItems.map((item) => (
+                      <ItemCard
+                        key={item.id}
+                        id={item.id}
+                        brand={item.brand}
+                        name={item.name}
+                        category={item.category}
+                        priceRange={item.price_range}
+                        imageUrl={item.image_url}
+                        description={item.description}
+                        styleTags={item.style_tags}
+                        colors={item.colors}
+                        similarity={item.similarity}
+                        isSaved={savedItemIds.has(item.id)}
+                        onSave={handleSaveItem}
+                        onClick={() => handleItemClick(item)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-20">
+                    <div className="text-6xl mb-4">🔍</div>
+                    <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
+                      No items match your filters
+                    </h3>
+                    <p className="text-neutral-600 dark:text-neutral-300 mb-6">
+                      Try adjusting or clearing your filters
+                    </p>
+                    <button
+                      onClick={clearAllFilters}
+                      className="inline-block bg-primary-500 dark:bg-primary-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-primary-600 dark:hover:bg-primary-700 transition-colors"
+                    >
+                      Clear Filters
+                    </button>
+                  </div>
+                )}
               </>
             ) : outfits.length === 0 ? (
               <div className="text-center py-20">
