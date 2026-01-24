@@ -20,6 +20,12 @@ export default function Navigation() {
               Upload
             </Link>
             <Link
+              href="/collections"
+              className="text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors font-medium"
+            >
+              Collections
+            </Link>
+            <Link
               href="/moodboard"
               className="text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors font-medium"
             >
