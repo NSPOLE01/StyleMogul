@@ -109,12 +109,43 @@ CREATE POLICY "Users can delete their own saved items"
   ON public.saved_items FOR DELETE
   USING (auth.uid() = user_id);
 
+-- Collections table
+CREATE TABLE IF NOT EXISTS public.collections (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users ON DELETE CASCADE NOT NULL,
+  name TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
+);
+
+-- Enable Row Level Security
+ALTER TABLE public.collections ENABLE ROW LEVEL SECURITY;
+
+-- Policies for collections
+CREATE POLICY "Users can view their own collections"
+  ON public.collections FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own collections"
+  ON public.collections FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own collections"
+  ON public.collections FOR UPDATE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own collections"
+  ON public.collections FOR DELETE
+  USING (auth.uid() = user_id);
+
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS outfits_user_id_idx ON public.outfits(user_id);
 CREATE INDEX IF NOT EXISTS outfits_created_at_idx ON public.outfits(created_at DESC);
 CREATE INDEX IF NOT EXISTS items_category_idx ON public.items(category);
 CREATE INDEX IF NOT EXISTS items_brand_idx ON public.items(brand);
 CREATE INDEX IF NOT EXISTS saved_items_user_id_idx ON public.saved_items(user_id);
+CREATE INDEX IF NOT EXISTS collections_user_id_idx ON public.collections(user_id);
+CREATE INDEX IF NOT EXISTS collections_created_at_idx ON public.collections(created_at DESC);
 
 -- Create vector similarity search indexes
 CREATE INDEX IF NOT EXISTS outfits_embedding_idx ON public.outfits
