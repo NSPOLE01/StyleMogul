@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Navigation from '@/components/navigation';
 import ProtectedRoute from '@/components/protected-route';
 import CreateCollectionModal from '@/components/ui/create-collection-modal';
+import CollectionDetailModal from '@/components/ui/collection-detail-modal';
 import { useAuth } from '@/lib/auth-context';
 import { getSupabase } from '@/lib/supabase';
 
@@ -20,6 +21,8 @@ export default function CollectionsPage() {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [loadingCollections, setLoadingCollections] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -64,6 +67,16 @@ export default function CollectionsPage() {
 
     // Refresh collections
     await fetchCollections();
+  };
+
+  const handleCollectionClick = (collection: Collection) => {
+    setSelectedCollection(collection);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleCloseDetailModal = () => {
+    setIsDetailModalOpen(false);
+    setTimeout(() => setSelectedCollection(null), 200);
   };
 
   if (loading) {
@@ -117,6 +130,7 @@ export default function CollectionsPage() {
                 {collections.map((collection) => (
                   <div
                     key={collection.id}
+                    onClick={() => handleCollectionClick(collection)}
                     className="bg-white dark:bg-neutral-800 rounded-3xl p-6 shadow-soft hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer"
                   >
                     <div className="text-4xl mb-4">📁</div>
@@ -190,6 +204,16 @@ export default function CollectionsPage() {
           onClose={() => setIsModalOpen(false)}
           onCreate={handleCreateCollection}
         />
+
+        {/* Collection Detail Modal */}
+        {user && (
+          <CollectionDetailModal
+            collection={selectedCollection}
+            isOpen={isDetailModalOpen}
+            onClose={handleCloseDetailModal}
+            userId={user.id}
+          />
+        )}
       </main>
     </ProtectedRoute>
   );

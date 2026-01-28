@@ -138,6 +138,49 @@ CREATE POLICY "Users can delete their own collections"
   ON public.collections FOR DELETE
   USING (auth.uid() = user_id);
 
+-- Collection outfits junction table
+CREATE TABLE IF NOT EXISTS public.collection_outfits (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  collection_id UUID REFERENCES public.collections ON DELETE CASCADE NOT NULL,
+  outfit_id UUID REFERENCES public.outfits ON DELETE CASCADE NOT NULL,
+  added_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
+  UNIQUE(collection_id, outfit_id)
+);
+
+-- Enable Row Level Security
+ALTER TABLE public.collection_outfits ENABLE ROW LEVEL SECURITY;
+
+-- Policies for collection_outfits (users can manage their own collection items)
+CREATE POLICY "Users can view their own collection outfits"
+  ON public.collection_outfits FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.collections
+      WHERE collections.id = collection_outfits.collection_id
+      AND collections.user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can insert into their own collections"
+  ON public.collection_outfits FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.collections
+      WHERE collections.id = collection_outfits.collection_id
+      AND collections.user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can delete from their own collections"
+  ON public.collection_outfits FOR DELETE
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.collections
+      WHERE collections.id = collection_outfits.collection_id
+      AND collections.user_id = auth.uid()
+    )
+  );
+
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS outfits_user_id_idx ON public.outfits(user_id);
 CREATE INDEX IF NOT EXISTS outfits_created_at_idx ON public.outfits(created_at DESC);
@@ -146,6 +189,8 @@ CREATE INDEX IF NOT EXISTS items_brand_idx ON public.items(brand);
 CREATE INDEX IF NOT EXISTS saved_items_user_id_idx ON public.saved_items(user_id);
 CREATE INDEX IF NOT EXISTS collections_user_id_idx ON public.collections(user_id);
 CREATE INDEX IF NOT EXISTS collections_created_at_idx ON public.collections(created_at DESC);
+CREATE INDEX IF NOT EXISTS collection_outfits_collection_id_idx ON public.collection_outfits(collection_id);
+CREATE INDEX IF NOT EXISTS collection_outfits_outfit_id_idx ON public.collection_outfits(outfit_id);
 
 -- Create vector similarity search indexes
 CREATE INDEX IF NOT EXISTS outfits_embedding_idx ON public.outfits
