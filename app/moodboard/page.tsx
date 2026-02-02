@@ -738,11 +738,10 @@ export default function MoodboardPage() {
                               <button
                                 key={style}
                                 onClick={() => toggleSavedFilter('styles', style)}
-                                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                                  selectedSavedFilters.styles.includes(style)
-                                    ? 'bg-primary-500 text-white'
-                                    : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600'
-                                }`}
+                                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${selectedSavedFilters.styles.includes(style)
+                                  ? 'bg-primary-500 text-white'
+                                  : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600'
+                                  }`}
                               >
                                 {style}
                               </button>
@@ -758,11 +757,10 @@ export default function MoodboardPage() {
                               <button
                                 key={color}
                                 onClick={() => toggleSavedFilter('colors', color)}
-                                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors capitalize ${
-                                  selectedSavedFilters.colors.includes(color)
-                                    ? 'bg-primary-500 text-white'
-                                    : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600'
-                                }`}
+                                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors capitalize ${selectedSavedFilters.colors.includes(color)
+                                  ? 'bg-primary-500 text-white'
+                                  : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600'
+                                  }`}
                               >
                                 {color}
                               </button>
@@ -778,11 +776,10 @@ export default function MoodboardPage() {
                               <button
                                 key={price}
                                 onClick={() => toggleSavedFilter('prices', price)}
-                                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                                  selectedSavedFilters.prices.includes(price)
-                                    ? 'bg-primary-500 text-white'
-                                    : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600'
-                                }`}
+                                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${selectedSavedFilters.prices.includes(price)
+                                  ? 'bg-primary-500 text-white'
+                                  : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600'
+                                  }`}
                               >
                                 {price}
                               </button>
@@ -798,11 +795,10 @@ export default function MoodboardPage() {
                               <button
                                 key={category}
                                 onClick={() => toggleSavedFilter('categories', category)}
-                                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors capitalize ${
-                                  selectedSavedFilters.categories.includes(category)
-                                    ? 'bg-primary-500 text-white'
-                                    : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600'
-                                }`}
+                                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors capitalize ${selectedSavedFilters.categories.includes(category)
+                                  ? 'bg-primary-500 text-white'
+                                  : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600'
+                                  }`}
                               >
                                 {category}
                               </button>
@@ -918,11 +914,10 @@ export default function MoodboardPage() {
                               <button
                                 key={style}
                                 onClick={() => toggleFilter('styles', style)}
-                                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                                  selectedFilters.styles.includes(style)
-                                    ? 'bg-primary-500 text-white'
-                                    : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600'
-                                }`}
+                                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${selectedFilters.styles.includes(style)
+                                  ? 'bg-primary-500 text-white'
+                                  : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600'
+                                  }`}
                               >
                                 {style}
                               </button>
@@ -938,11 +933,10 @@ export default function MoodboardPage() {
                               <button
                                 key={color}
                                 onClick={() => toggleFilter('colors', color)}
-                                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors capitalize ${
-                                  selectedFilters.colors.includes(color)
-                                    ? 'bg-primary-500 text-white'
-                                    : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600'
-                                }`}
+                                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors capitalize ${selectedFilters.colors.includes(color)
+                                  ? 'bg-primary-500 text-white'
+                                  : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600'
+                                  }`}
                               >
                                 {color}
                               </button>
@@ -958,11 +952,10 @@ export default function MoodboardPage() {
                               <button
                                 key={price}
                                 onClick={() => toggleFilter('prices', price)}
-                                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                                  selectedFilters.prices.includes(price)
-                                    ? 'bg-primary-500 text-white'
-                                    : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600'
-                                }`}
+                                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${selectedFilters.prices.includes(price)
+                                  ? 'bg-primary-500 text-white'
+                                  : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600'
+                                  }`}
                               >
                                 {price}
                               </button>
@@ -978,11 +971,10 @@ export default function MoodboardPage() {
                               <button
                                 key={category}
                                 onClick={() => toggleFilter('categories', category)}
-                                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors capitalize ${
-                                  selectedFilters.categories.includes(category)
-                                    ? 'bg-primary-500 text-white'
-                                    : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600'
-                                }`}
+                                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors capitalize ${selectedFilters.categories.includes(category)
+                                  ? 'bg-primary-500 text-white'
+                                  : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600'
+                                  }`}
                               >
                                 {category}
                               </button>
