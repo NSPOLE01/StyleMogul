@@ -81,6 +81,11 @@ export async function POST(request: NextRequest) {
 
             if (!dbError) {
               console.log('Outfit saved to database:', outfitData);
+              return NextResponse.json({
+                success: true,
+                analysis,
+                outfitId: outfitData.id,
+              });
             } else {
               console.error('Error saving outfit to database:', dbError);
             }
