@@ -206,12 +206,6 @@ export default function CollectionDetailModal({
                     {outfits.length} outfit{outfits.length === 1 ? '' : 's'}
                   </p>
                 </div>
-                <button
-                  onClick={handleOpenAddModal}
-                  className="bg-primary-500 dark:bg-primary-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-primary-600 dark:hover:bg-primary-700 transition-colors"
-                >
-                  + Add Photos
-                </button>
               </div>
 
               {loading ? (
